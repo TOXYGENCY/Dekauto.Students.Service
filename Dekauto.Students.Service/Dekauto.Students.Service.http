@@ -1,0 +1,6 @@
+@Dekauto.Students.Service_HostAddress = http://localhost:5144
+
+GET {{Dekauto.Students.Service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
