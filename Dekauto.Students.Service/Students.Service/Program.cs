@@ -1,4 +1,8 @@
+using Dekauto.Students.Service.Students.Service.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("Main");
 
 // Add services to the container.
 
@@ -6,6 +10,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<DekautoContext>(options =>
+    options.UseNpgsql(connectionString));
 
 var app = builder.Build();
 
