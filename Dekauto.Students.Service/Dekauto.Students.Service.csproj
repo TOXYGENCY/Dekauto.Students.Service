@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Students.Service\Controllers\" />
     <Folder Include="Students.Service\Services\" />
   </ItemGroup>
 

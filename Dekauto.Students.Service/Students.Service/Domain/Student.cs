@@ -7,8 +7,6 @@ public partial class Student
 {
     public Guid Id { get; set; }
 
-    public Guid? UserId { get; set; }
-
     public string? Name { get; set; }
 
     public string? Surname { get; set; }
@@ -83,8 +81,6 @@ public partial class Student
 
     public bool? LivingInDormitory { get; set; }
 
-    public Guid? GradeBookId { get; set; }
-
     public string? GiaExam1Name { get; set; }
 
     public short? GiaExam1Score { get; set; }
@@ -113,10 +109,6 @@ public partial class Student
 
     public bool? MaritalStatus { get; set; }
 
-    public Guid? OoId { get; set; }
-
-    public short? OoExitYear { get; set; }
-
     public string? EducationReceived { get; set; }
 
     public string? EducationForm { get; set; }
@@ -134,6 +126,14 @@ public partial class Student
     public string? EduRelationNum { get; set; }
 
     public DateOnly? EduRelationDate { get; set; }
+
+    public short? OoExitYear { get; set; }
+
+    public Guid? OoId { get; set; }
+
+    public Guid? GradeBookId { get; set; }
+
+    public Guid? UserId { get; set; }
 
     public virtual Group? GradeBook { get; set; }
 
