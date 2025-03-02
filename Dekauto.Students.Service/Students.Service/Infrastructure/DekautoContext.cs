@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Dekauto.Students.Service.Students.Service.Domain;
+using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure;

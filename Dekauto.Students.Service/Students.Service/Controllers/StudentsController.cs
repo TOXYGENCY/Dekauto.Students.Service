@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Dekauto.Students.Service.Students.Service.Domain;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
+using Dekauto.Students.Service.Students.Service.Domain.Entities;
+using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
@@ -15,108 +16,90 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     public class StudentsController : ControllerBase
     {
         private readonly DekautoContext _context;
+        private readonly IStudentsRepository _studentsRepository;
 
-        public StudentsController(DekautoContext context)
+        public StudentsController(DekautoContext context, IStudentsRepository studentsRepository)
         {
             _context = context;
+            _studentsRepository = studentsRepository;
         }
 
-        // GET: api/Students
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
+        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
         {
-            return await _context.Students.ToListAsync();
+            try
+            {
+                return Ok(await _studentsRepository.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
 
-        // GET: api/Students/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(Guid id)
+        public async Task<ActionResult<Student>> GetStudentById(Guid id)
         {
-            var student = await _context.Students.FindAsync(id);
-
-            if (student == null)
+            try
             {
-                return NotFound();
+                var student = await _studentsRepository.GetByIdAsync(id);
+                if (student == null) return StatusCode(StatusCodes.Status404NotFound);
+                return Ok(student);
             }
-
-            return student;
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
 
-        // PUT: api/Students/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStudent(Guid id, Student student)
+        public async Task<IActionResult> UpdateStudentAsync(Guid id, Student student)
         {
-            if (id != student.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(student).State = EntityState.Modified;
+            if (id != student.Id) return StatusCode(StatusCodes.Status400BadRequest);
 
             try
             {
-                await _context.SaveChangesAsync();
+                // TODO: обращение в сервис...
+                //return Ok();
+                return StatusCode(StatusCodes.Status501NotImplemented);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!StudentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
-
-            return NoContent();
         }
 
-        // POST: api/Students
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Student>> PostStudent(Student student)
+        public async Task<ActionResult<Student>> AddStudentAsync(Student student)
         {
-            _context.Students.Add(student);
             try
             {
-                await _context.SaveChangesAsync();
+                _studentsRepository.AddAsync(student);
+                return Ok();
             }
-            catch (DbUpdateException)
+            catch (Exception ex)
             {
-                if (StudentExists(student.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
-
-            return CreatedAtAction("GetStudent", new { id = student.Id }, student);
         }
 
-        // DELETE: api/Students/5
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(Guid id)
         {
-            var student = await _context.Students.FindAsync(id);
-            if (student == null)
+            try
             {
-                return NotFound();
+                // TODO: убрать в сервис...
+                var student = await _studentsRepository.GetByIdAsync(id);
+                if (student == null) return StatusCode(StatusCodes.Status404NotFound);
+                _context.Remove(student);
+                await _context.SaveChangesAsync();
+                return Ok();
             }
-
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool StudentExists(Guid id)
-        {
-            return _context.Students.Any(e => e.Id == id);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 }

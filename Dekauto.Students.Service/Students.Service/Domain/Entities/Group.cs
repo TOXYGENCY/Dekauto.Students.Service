@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Dekauto.Students.Service.Students.Service.Domain;
+namespace Dekauto.Students.Service.Students.Service.Domain.Entities;
 
 public partial class Group
 {
