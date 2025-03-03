@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /db-create-dekauto-v1.sql
 /db-create-dekauto-v2.6.sql
 /Dekauto.Students.Service/Properties/launchSettings.json
+/db-create-dekauto-v2.7.sql

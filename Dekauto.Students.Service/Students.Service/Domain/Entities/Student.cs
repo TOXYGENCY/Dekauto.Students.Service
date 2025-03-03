@@ -135,6 +135,7 @@ public partial class Student
 
     public Guid? UserId { get; set; }
 
+    // TODO: пофиксить это недоразумение
     public virtual Group? GradeBook { get; set; }
 
     public virtual Oo? Oo { get; set; }
