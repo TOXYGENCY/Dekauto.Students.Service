@@ -11,7 +11,7 @@ using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class StudentsController : ControllerBase
     {
