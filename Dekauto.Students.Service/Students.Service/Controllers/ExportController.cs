@@ -39,19 +39,40 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             );
         }
 
-        [HttpPost("export")]
+        [HttpPost("export/student")]
         public async Task<IActionResult> ExportStudentCard(Student student)
         {
             try
             {
+                if (student == null) return StatusCode(StatusCodes.Status400BadRequest);
+
                 // INFO: в сервисе "Экспорт" теряется информация о всех связанных объектах (group, OO, grade_book и тп)
                 // TODO: добавить наименование группы в передаваемый объект студента (сейчас группа является связанным объектом)
                 var (fileData, fileName) = await _exportProvider.ExportStudentCardAsync(student);
                 _setHeaderFileNames(_defaultLatFileName, fileName);
                 return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
-            catch (Exception ex) 
-            { 
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("export/group")]
+        public async Task<IActionResult> ExportGroupCards(IEnumerable<Student> students)
+        {
+            try
+            {
+                if (students == null) return StatusCode(StatusCodes.Status400BadRequest);
+
+                // INFO: в сервисе "Экспорт" теряется информация о всех связанных объектах (group, OO, grade_book и тп)
+                // TODO: добавить наименование группы в передаваемый объект студента (сейчас группа является связанным объектом)
+                var (fileData, fileName) = await _exportProvider.ExportGroupCardsAsync(students);
+                _setHeaderFileNames(_defaultLatFileName, fileName);
+                return File(fileData, "application/zip");
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }

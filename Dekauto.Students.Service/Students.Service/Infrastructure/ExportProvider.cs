@@ -42,9 +42,18 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
         {
             // Получаем адрес API из подробного конфига
             var apiUrl = _exportConfig.GetValue<string>("student_card");
-            if (apiUrl == null ) throw new ArgumentNullException(nameof(apiUrl));
+            if (apiUrl == null) throw new ArgumentNullException(nameof(apiUrl));
 
             return await _exportFile(student, apiUrl);
+        }
+
+        public async Task<(byte[], string)> ExportGroupCardsAsync(IEnumerable<Student> students)
+        {
+            // Получаем адрес API из подробного конфига
+            var apiUrl = _exportConfig.GetValue<string>("group_cards");
+            if (apiUrl == null) throw new ArgumentNullException(nameof(apiUrl));
+
+            return await _exportFile(students, apiUrl);
         }
     }
 }
