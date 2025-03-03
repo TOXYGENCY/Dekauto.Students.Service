@@ -7,10 +7,11 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 {
     public class ExportProvider : IExportProvider
     {
-        // используем HttpClientFactory, потому что оно само управляет жизненным циклом соединения и диспозит их
+        // используем HttpClientFactory, потому что оно само управляет жизненным циклом соединения и диспозит их + можно легко мокать
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IConfigurationSection _exportConfig;
+        private string _defaultLatFileName;
 
         public ExportProvider(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
@@ -19,6 +20,22 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
             // Сразу находим секцию из конфига
             _exportConfig = _configuration.GetSection("Services").GetSection("Export");
+            _defaultLatFileName = _exportConfig.GetValue<string>("defaultLatFileName") ?? "exported_student_card";
+        }
+
+        private async Task<(byte[], string)> _exportFile(object data, string apiUrl)
+        {
+            HttpClient http = _httpClientFactory.CreateClient();
+            var response = await http.PostAsJsonAsync(apiUrl, data);
+            response.EnsureSuccessStatusCode();
+
+            var fileData = await response.Content.ReadAsByteArrayAsync();
+            if (fileData == null) throw new Exception($"Файл отсутствует. fileData = {fileData}");
+
+            var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+                ?? Uri.EscapeDataString($"{_defaultLatFileName}");
+
+            return (fileData, fileName);
         }
 
         public async Task<(byte[], string)> ExportStudentCardAsync(Student student)
@@ -27,17 +44,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             var apiUrl = _exportConfig.GetValue<string>("student_card");
             if (apiUrl == null ) throw new ArgumentNullException(nameof(apiUrl));
 
-            HttpClient http = _httpClientFactory.CreateClient();
-            var response = await http.PostAsJsonAsync(apiUrl, student);
-            response.EnsureSuccessStatusCode();
-
-            var fileData = await response.Content.ReadAsByteArrayAsync();
-            if (fileData == null) throw new Exception($"Файл отсутствует. fileData = {fileData}");
-
-            var fileName = response.Content.Headers.ContentDisposition?.FileNameStar 
-                ?? Uri.EscapeDataString($"{student.Name} {student.Surname} {student.Pathronymic}.xlsx");
-
-            return (fileData, fileName);
+            return await _exportFile(student, apiUrl);
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using System.Configuration;
 using System.Drawing;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
@@ -13,11 +14,18 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     public class ExportController : ControllerBase
     {
         private IExportProvider _exportProvider;
-        private string _defaultLatFileName = "exported_student_card";
+        private readonly IConfiguration _configuration;
+        private readonly IConfigurationSection _exportConfig;
+        private string _defaultLatFileName;
 
-        public ExportController(IExportProvider exportProvider)
+        public ExportController(IExportProvider exportProvider, IConfiguration configuration)
         {
             _exportProvider = exportProvider;
+            _configuration = configuration;
+
+            // Сразу находим секцию из конфига
+            _exportConfig = _configuration.GetSection("Services").GetSection("Export");
+            _defaultLatFileName = _exportConfig.GetValue<string>("defaultLatFileName") ?? "exported_student_card";
         }
 
         private void _setHeaderFileNames(string fileName, string fileNameStar)
