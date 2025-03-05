@@ -20,7 +20,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
             // Сразу находим секцию из конфига
             _exportConfig = _configuration.GetSection("Services").GetSection("Export");
-            _defaultLatFileName = _exportConfig.GetValue<string>("defaultLatFileName") ?? "exported_student_card";
+            _defaultLatFileName = _exportConfig["defaultLatFileName"] ?? "exported_student_card";
         }
 
         private async Task<(byte[], string)> _exportFile(object data, string apiUrl)
@@ -41,7 +41,8 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
         public async Task<(byte[], string)> ExportStudentCardAsync(Student student)
         {
             // Получаем адрес API из подробного конфига
-            var apiUrl = _exportConfig.GetValue<string>("student_card");
+            //var apiUrl = _exportConfig.GetValue<string>("student_card"); - метод-расширение не мокается в тестах
+            var apiUrl = _exportConfig["student_card"];
             if (apiUrl == null) throw new ArgumentNullException(nameof(apiUrl));
 
             return await _exportFile(student, apiUrl);
@@ -50,7 +51,8 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
         public async Task<(byte[], string)> ExportGroupCardsAsync(IEnumerable<Student> students)
         {
             // Получаем адрес API из подробного конфига
-            var apiUrl = _exportConfig.GetValue<string>("group_cards");
+            //var apiUrl = _exportConfig.GetValue<string>("group_cards");
+            var apiUrl = _exportConfig["group_cards"];
             if (apiUrl == null) throw new ArgumentNullException(nameof(apiUrl));
 
             return await _exportFile(students, apiUrl);
