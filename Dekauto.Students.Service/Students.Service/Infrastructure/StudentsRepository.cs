@@ -35,6 +35,16 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             return await _сontext.Students.FirstOrDefaultAsync(student => student.Id == id);
         }
 
+        public Task<IEnumerable<Student>> GetStudentsByGroup(Student student)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<Student>> GetStudentsByGroup(Guid group_id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task UpdateAsync(Guid id, Student student)
         {
             throw new NotImplementedException();

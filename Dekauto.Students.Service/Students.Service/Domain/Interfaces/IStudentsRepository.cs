@@ -6,6 +6,8 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
 {
     public interface IStudentsRepository : IRepository<Student>
     {
-        
+        Task<IEnumerable<Student>> GetStudentsByGroup(Student student);
+        Task<IEnumerable<Student>> GetStudentsByGroup(Guid group_id);
+
     }
 }
