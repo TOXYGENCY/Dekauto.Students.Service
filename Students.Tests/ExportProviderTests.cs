@@ -16,6 +16,10 @@ namespace Students.Tests
         private Mock<IConfiguration> _configurationMock;
         private Mock<IConfigurationSection> _exportConfigSectionMock;
         private ExportProvider _exportProvider;
+        private string _apiUrlMock;
+        private byte[] _expectedData;
+        private string _expectedFileName;
+
 
         [TestInitialize]
         public void Setup()
@@ -25,7 +29,12 @@ namespace Students.Tests
             _exportConfigSectionMock = new Mock<IConfigurationSection>();
             _configurationMock.Setup(conf => conf.GetSection("Services").GetSection("Export"))
                 .Returns(_exportConfigSectionMock.Object);
+
+            _apiUrlMock = "https://student_card_api_mock"; // Обязательно абсолютный адрес
+            _expectedData = new byte[] { 1, 2, 3 };
+            _expectedFileName = "student_card.mock";
         }
+
         /// <summary>
         /// Метод установки и подготовки всех моков для теста.
         /// </summary>
@@ -55,23 +64,96 @@ namespace Students.Tests
             _exportProvider = new ExportProvider(_httpClientFactoryMock.Object, _configurationMock.Object);
         }
 
+        // Экспорт СТУДЕНТА
         [TestMethod]
-        public async Task ExportStudentCardAsync_ValidStudent_ReturnsFileDataAndName()
+        public async Task ExportStudentCardAsync_ValidStudent_ReturnsFileDataAndNameSuccess()
         {
             // Arrange
             var student = new Student();
-            var apiUrlMock = "https://student_card_api_mock"; // Обязательно абсолютный адрес
-            var expectedData = new byte[] { 1, 2, 3 };
-            var expectedFileName = "student_card.mock";
 
-            _setupMocks(apiUrlMock, expectedData, expectedFileName);
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
 
             // Act
             var (byte_arr, fileName) = await _exportProvider.ExportStudentCardAsync(student);
 
             // Assert
-            CollectionAssert.AreEqual(expectedData, byte_arr);
-            Assert.AreEqual(expectedFileName, fileName);
+            CollectionAssert.AreEqual(_expectedData, byte_arr);
+            Assert.AreEqual(_expectedFileName, fileName);
+        }
+
+        [TestMethod]
+        public async Task ExportStudentCardAsync_NullStudent_Exception()
+        {
+            // Arrange
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportStudentCardAsync(null));
+        }
+
+        [TestMethod]
+        public async Task ExportStudentCardAsync_NullAPI_Exception()
+        {
+            // Arrange
+            var student = new Student();
+
+            _setupMocks(null, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportStudentCardAsync(student));
+        }
+
+
+
+        // Экспорт ГРУППЫ
+        [TestMethod]
+        public async Task ExportGroupCardsAsync_ValidStudents_ReturnsFileDataAndNameSuccess()
+        {
+            // Arrange
+            var students = new List<Student> { new Student(), new Student() };
+
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
+
+            // Act
+            var (byte_arr, fileName) = await _exportProvider.ExportGroupCardsAsync(students);
+
+            // Assert
+            CollectionAssert.AreEqual(_expectedData, byte_arr);
+            Assert.AreEqual(_expectedFileName, fileName);
+        }
+
+        [TestMethod]
+        public async Task ExportGroupCardsAsync_NullStudents_Exception()
+        {
+            // Arrange
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportGroupCardsAsync(null));
+        }
+
+        [TestMethod]
+        public async Task ExportGroupCardsAsync_EmptyStudents_Exception()
+        {
+            // Arrange
+            var students = new List<Student>();
+
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () => await _exportProvider.ExportGroupCardsAsync(students));
+        }
+
+        [TestMethod]
+        public async Task ExportGroupCardsAsync_NullAPI_Exception()
+        {
+            // Arrange
+            var students = new List<Student> { new Student(), new Student() };
+
+            _setupMocks(null, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportGroupCardsAsync(students));
         }
     }
 }

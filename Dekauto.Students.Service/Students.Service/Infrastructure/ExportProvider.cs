@@ -7,7 +7,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 {
     public class ExportProvider : IExportProvider
     {
-        // используем HttpClientFactory, потому что оно само управляет жизненным циклом соединения и диспозит их + можно легко мокать
+        // используем HttpClientFactory, потому что оно само управляет жизненным циклом соединения и диспозит их + можно мокать
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IConfigurationSection _exportConfig;
@@ -40,6 +40,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
         public async Task<(byte[], string)> ExportStudentCardAsync(Student student)
         {
+            if (student == null) throw new ArgumentNullException(nameof(student));
             // Получаем адрес API из подробного конфига
             //var apiUrl = _exportConfig.GetValue<string>("student_card"); - метод-расширение не мокается в тестах
             var apiUrl = _exportConfig["student_card"];
@@ -50,6 +51,8 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
         public async Task<(byte[], string)> ExportGroupCardsAsync(IEnumerable<Student> students)
         {
+            if (students == null) throw new ArgumentNullException(nameof(students));
+            if (!students.Any()) throw new ArgumentException($"Список студентов \"{nameof(students)}\" пуст.");
             // Получаем адрес API из подробного конфига
             //var apiUrl = _exportConfig.GetValue<string>("group_cards");
             var apiUrl = _exportConfig["group_cards"];
