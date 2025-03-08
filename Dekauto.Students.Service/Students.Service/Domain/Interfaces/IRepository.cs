@@ -10,6 +10,6 @@
 
         Task UpdateAsync(Guid id, T obj);
 
-        Task DeleteAsync(T obj);
+        Task DeleteAsync(Guid id);
     }
 }

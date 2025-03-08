@@ -50,7 +50,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             //var student = _studentsRepository.GetByIdAsync(studentId);
 
             if (studentId == null) throw new ArgumentNullException(nameof(studentId));
-            var studentExportDTO = await _studentsService.ConvertStudent_ToStudentExportDTOAsync(studentId);
+            var studentExportDTO = await _studentsService.ToExportDtoAsync(studentId);
 
             // Получаем адрес API из подробного конфига
             //var apiUrl = _exportConfig.GetValue<string>("student_card"); - метод-расширение не мокается в тестах
@@ -76,7 +76,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
         {
             if (groupId == null) throw new ArgumentNullException(nameof(groupId));
             var students = await _studentsRepository.GetStudentsByGroupAsync(groupId);
-            var studentExportDTOs = await _studentsService.ConvertStudentsList_ToStudentExportDTOListAsync(students);
+            var studentExportDTOs = await _studentsService.ToExportDtosAsync(students);
 
             if (studentExportDTOs == null) throw new ArgumentNullException(nameof(studentExportDTOs));
             if (!studentExportDTOs.Any()) throw new ArgumentException($"Список студентов \"{nameof(studentExportDTOs)}\" пуст.");

@@ -1,6 +1,6 @@
 ﻿namespace Dekauto.Students.Service.Students.Service.Domain.Entities.ExportAdapters
 {
-    public class StudentExportDTO
+    public class StudentExportDto
     {
 
         public string? Name { get; set; } // Имя +

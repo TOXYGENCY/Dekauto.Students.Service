@@ -45,49 +45,68 @@ namespace Dekauto.Students.Service.Students.Service.Services
             return student;
         }
 
-        public async Task<StudentExportDTO> ConvertStudent_ToStudentExportDTOAsync(Guid studentId)
+        public async Task<StudentExportDto> ToExportDtoAsync(Guid studentId)
         {
             var student = await _studentsRepository.GetByIdAsync(studentId);
             if (student == null) throw new ArgumentNullException(nameof(student));
             
             // Конвертируем общие поля
-            var studentExportDTO = _jsonSerializationConvert<Student, StudentExportDTO>(student);
+            var studentExportDto = _jsonSerializationConvert<Student, StudentExportDto>(student);
 
             // Дополняем объект нужными данными из БД
-            studentExportDTO.GroupName = student.Group.Name;
-            studentExportDTO.OOName = student.Oo.Name;
-            studentExportDTO.OOAddress = student.Oo.OoAddress;
-            studentExportDTO.AddressResidentialType = student.AddressResidentialTypeObj.Name;
-            studentExportDTO.AddressRegistrationType = student.AddressRegistrationTypeObj.Name;
-            studentExportDTO.EducationReceivedNum = student.EducationReceivedNum;
-            studentExportDTO.EducationReceivedSerial = student.EducationReceivedSerial;
-            studentExportDTO.EducationReceivedEndYear = student.EducationReceivedEndYear;
+            studentExportDto.GroupName = student.Group.Name;
+            studentExportDto.OOName = student.Oo.Name;
+            studentExportDto.OOAddress = student.Oo.OoAddress;
+            studentExportDto.AddressResidentialType = student.AddressResidentialTypeObj.Name;
+            studentExportDto.AddressRegistrationType = student.AddressRegistrationTypeObj.Name;
+            studentExportDto.EducationReceivedNum = student.EducationReceivedNum;
+            studentExportDto.EducationReceivedSerial = student.EducationReceivedSerial;
+            studentExportDto.EducationReceivedEndYear = student.EducationReceivedEndYear;
 
-            return studentExportDTO;
+            return studentExportDto;
         }
 
-        public async Task<Student> ConvertStudentDTO_ToStudentAsync(StudentDTO studentDTO)
+        public async Task<Student> FromDtoAsync(StudentDto studentDto)
         {
-            if (studentDTO == null) throw new ArgumentNullException(nameof(studentDTO));
+            if (studentDto == null) throw new ArgumentNullException(nameof(studentDto));
 
-            var student = _jsonSerializationConvert<StudentDTO, Student>(studentDTO);
+            var student = _jsonSerializationConvert<StudentDto, Student>(studentDto);
             student = await _assignEfStudentModelsAsync(student);
 
             return student;
         }
 
         // TODO INFO: все методы принимающие id забирают объекты из БД, а не испольуют переданные
-        public async Task<IEnumerable<StudentExportDTO>> ConvertStudentsList_ToStudentExportDTOListAsync(IEnumerable<Student> students)
+        public async Task<IEnumerable<StudentExportDto>> ToExportDtosAsync(IEnumerable<Student> students)
         {
             if (students == null) throw new ArgumentNullException(nameof(students));
 
-            IEnumerable<StudentExportDTO> studentExportDTOList = new List<StudentExportDTO>();
+            var studentExportDtoList = new List<StudentExportDto>();
             foreach (var student in students)
             {
-                studentExportDTOList = studentExportDTOList.Append(await ConvertStudent_ToStudentExportDTOAsync(student.Id));
+                studentExportDtoList.Add(await ToExportDtoAsync(student.Id));
             }
 
-            return studentExportDTOList;
+            return studentExportDtoList;
+        }
+
+        public StudentDto ToDto(Student student)
+        {
+            if (student == null) throw new ArgumentNullException(nameof(student));
+            return _jsonSerializationConvert<Student, StudentDto>(student);
+        }
+        
+        public IEnumerable<StudentDto> ToDtos(IEnumerable<Student> students)
+        {
+            if (students == null) throw new ArgumentNullException(nameof(students));
+
+            var studentDtos = new List<StudentDto>();
+            foreach (var student in students)
+            {
+                studentDtos.Add(_jsonSerializationConvert<Student, StudentDto>(student));
+            }
+
+            return studentDtos;
         }
     }
 }
