@@ -1,6 +1,6 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
-using Dekauto.Students.Service.Students.Service.Domain.Entities.ExportAdapters;
+using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Elfie.Serialization;

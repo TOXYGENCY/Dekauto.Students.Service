@@ -1,10 +1,13 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
+using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
+using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Students.Tests.Entities;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 
 namespace Students.Tests
 {
@@ -15,6 +18,8 @@ namespace Students.Tests
         private Mock<IHttpClientFactory> _httpClientFactoryMock;
         private Mock<IConfiguration> _configurationMock;
         private Mock<IConfigurationSection> _exportConfigSectionMock;
+        private Mock<IStudentsService> _studentsServiceMock;
+        private Mock<IStudentsRepository> _studentsRepositoryMock;
         private ExportProvider _exportProvider;
         private string _apiUrlMock;
         private byte[] _expectedData;
@@ -27,6 +32,8 @@ namespace Students.Tests
             _httpClientFactoryMock = new Mock<IHttpClientFactory>();
             _configurationMock = new Mock<IConfiguration>();
             _exportConfigSectionMock = new Mock<IConfigurationSection>();
+            _studentsServiceMock = new Mock<IStudentsService>();
+            _studentsRepositoryMock = new Mock<IStudentsRepository>();
             _configurationMock.Setup(conf => conf.GetSection("Services").GetSection("Export"))
                 .Returns(_exportConfigSectionMock.Object);
 
@@ -61,20 +68,24 @@ namespace Students.Tests
             _httpClientFactoryMock.Setup(fact => fact.CreateClient(It.Is<string>(s => s == string.Empty)))
                 .Returns(httpClient);
 
-            _exportProvider = new ExportProvider(_httpClientFactoryMock.Object, _configurationMock.Object);
+            _exportProvider = new ExportProvider(_httpClientFactoryMock.Object, _configurationMock.Object, 
+                _studentsServiceMock.Object, _studentsRepositoryMock.Object);
         }
 
         // Экспорт СТУДЕНТА
         [TestMethod]
-        public async Task ExportStudentCardAsync_ValidStudent_ReturnsFileDataAndNameSuccess()
+        public async Task ExportStudentCardAsync_Valid_ReturnsFileDataAndNameSuccess()
         {
             // Arrange
-            var student = new Student();
+            var studentId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtoAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new StudentExportDto());
 
             _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
 
             // Act
-            var (byte_arr, fileName) = await _exportProvider.ExportStudentCardAsync(student);
+            var (byte_arr, fileName) = await _exportProvider.ExportStudentCardAsync(studentId);
 
             // Assert
             CollectionAssert.AreEqual(_expectedData, byte_arr);
@@ -82,40 +93,50 @@ namespace Students.Tests
         }
 
         [TestMethod]
-        public async Task ExportStudentCardAsync_NullStudent_Exception()
+        public async Task ExportStudentCardAsync_NullDto_Exception()
         {
             // Arrange
+            var studentId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtoAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((StudentExportDto)null);
+
             _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportStudentCardAsync(null));
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportStudentCardAsync(studentId));
         }
 
         [TestMethod]
         public async Task ExportStudentCardAsync_NullAPI_Exception()
         {
             // Arrange
-            var student = new Student();
+            var studentId = new Guid();
 
             _setupMocks(null, _expectedData, _expectedFileName);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportStudentCardAsync(student));
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportStudentCardAsync(studentId));
         }
 
 
 
         // Экспорт ГРУППЫ
         [TestMethod]
-        public async Task ExportGroupCardsAsync_ValidStudents_ReturnsFileDataAndNameSuccess()
+        public async Task ExportGroupCardsAsync_Valid_ReturnsFileDataAndNameSuccess()
         {
             // Arrange
-            var students = new List<Student> { new Student(), new Student() };
+            var groupId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtosAsync(It.IsAny<List<Student>>()))
+                .ReturnsAsync(new List<StudentExportDto> { new StudentExportDto() });
+            _studentsRepositoryMock.Setup(rep => rep.GetStudentsByGroupAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new List<Student> { new Student() });
 
             _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
 
             // Act
-            var (byte_arr, fileName) = await _exportProvider.ExportGroupCardsAsync(students);
+            var (byte_arr, fileName) = await _exportProvider.ExportGroupCardsAsync(groupId);
 
             // Assert
             CollectionAssert.AreEqual(_expectedData, byte_arr);
@@ -123,37 +144,88 @@ namespace Students.Tests
         }
 
         [TestMethod]
-        public async Task ExportGroupCardsAsync_NullStudents_Exception()
-        {
-            // Arrange
-            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
-
-            // Act & Assert
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportGroupCardsAsync(null));
-        }
-
-        [TestMethod]
         public async Task ExportGroupCardsAsync_EmptyStudents_Exception()
         {
             // Arrange
-            var students = new List<Student>();
+            var groupId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtosAsync(It.IsAny<List<Student>>()))
+                .ReturnsAsync(new List<StudentExportDto> { new StudentExportDto() });
+            _studentsRepositoryMock.Setup(rep => rep.GetStudentsByGroupAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new List<Student>());
 
             _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<ArgumentException>(async () => await _exportProvider.ExportGroupCardsAsync(students));
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () => await _exportProvider.ExportGroupCardsAsync(groupId));
+        }
+
+        [TestMethod]
+        public async Task ExportGroupCardsAsync_NullStudents_Exception()
+        {
+            // Arrange
+            var groupId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtosAsync(It.IsAny<List<Student>>()))
+                .ReturnsAsync(new List<StudentExportDto> { new StudentExportDto() });
+            _studentsRepositoryMock.Setup(rep => rep.GetStudentsByGroupAsync(It.IsAny<Guid>()))
+                .ReturnsAsync((List<Student>) null);
+
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportGroupCardsAsync(groupId));
+        }
+
+        [TestMethod]
+        public async Task ExportGroupCardsAsync_EmptyStudentExportDtos_Exception()
+        {
+            // Arrange
+            var groupId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtosAsync(It.IsAny<List<Student>>()))
+                .ReturnsAsync(new List<StudentExportDto>());
+            _studentsRepositoryMock.Setup(rep => rep.GetStudentsByGroupAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new List<Student> { new Student() });
+
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentException>(async () => await _exportProvider.ExportGroupCardsAsync(groupId));
+        }
+
+        [TestMethod]
+        public async Task ExportGroupCardsAsync_NullStudentExportDtos_Exception()
+        {
+            // Arrange
+            var groupId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtosAsync(It.IsAny<List<Student>>()))
+                .ReturnsAsync((List<StudentExportDto>) null);
+            _studentsRepositoryMock.Setup(rep => rep.GetStudentsByGroupAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new List<Student> { new Student() });
+
+            _setupMocks(_apiUrlMock, _expectedData, _expectedFileName);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportGroupCardsAsync(groupId));
         }
 
         [TestMethod]
         public async Task ExportGroupCardsAsync_NullAPI_Exception()
         {
             // Arrange
-            var students = new List<Student> { new Student(), new Student() };
+            var groupId = new Guid();
+
+            _studentsServiceMock.Setup(serv => serv.ToExportDtosAsync(It.IsAny<List<Student>>()))
+                .ReturnsAsync(new List<StudentExportDto> { new StudentExportDto() });
+            _studentsRepositoryMock.Setup(rep => rep.GetStudentsByGroupAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new List<Student> { new Student() });
 
             _setupMocks(null, _expectedData, _expectedFileName);
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportGroupCardsAsync(students));
+            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () => await _exportProvider.ExportGroupCardsAsync(groupId));
         }
     }
 }
