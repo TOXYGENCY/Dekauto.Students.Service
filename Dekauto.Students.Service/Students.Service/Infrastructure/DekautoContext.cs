@@ -20,6 +20,8 @@ public partial class DekautoContext : DbContext
 
     public virtual DbSet<Oo> Oos { get; set; }
 
+    public virtual DbSet<ResidentialType> ResidentialTypes { get; set; }
+
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
@@ -28,7 +30,7 @@ public partial class DekautoContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Server=127.0.0.1;Port=5432;Database=Dekauto;User Id=postgres;Password=;");
+        => optionsBuilder.UseNpgsql("Server=127.0.0.1;Port=5432;Database=Dekauto;User Id=postgres;Password=;Include Error Detail=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +65,20 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.OoAddress)
                 .HasMaxLength(1000)
                 .HasColumnName("OO_address");
+        });
+
+        modelBuilder.Entity<ResidentialType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("residential_types_pkey");
+
+            entity.ToTable("residential_types");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -103,6 +119,9 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.AddressRegistrationHousing)
                 .HasMaxLength(20)
                 .HasColumnName("address_registration_housing");
+            entity.Property(e => e.AddressRegistrationHousingType)
+                .HasMaxLength(50)
+                .HasColumnName("address_registration_housing_type");
             entity.Property(e => e.AddressRegistrationIndex)
                 .HasMaxLength(20)
                 .HasColumnName("address_registration_index");
@@ -112,6 +131,7 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.AddressRegistrationStreet)
                 .HasMaxLength(400)
                 .HasColumnName("address_registration_street");
+            entity.Property(e => e.AddressRegistrationTypeId).HasColumnName("address_registration_type_id");
             entity.Property(e => e.AddressResidentialApartment)
                 .HasMaxLength(20)
                 .HasColumnName("address_residential_apartment");
@@ -127,6 +147,9 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.AddressResidentialHousing)
                 .HasMaxLength(20)
                 .HasColumnName("address_residential_housing");
+            entity.Property(e => e.AddressResidentialHousingType)
+                .HasMaxLength(50)
+                .HasColumnName("address_residential_housing_type");
             entity.Property(e => e.AddressResidentialIndex)
                 .HasMaxLength(20)
                 .HasColumnName("address_residential_index");
@@ -136,23 +159,26 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.AddressResidentialStreet)
                 .HasMaxLength(400)
                 .HasColumnName("address_residential_street");
+            entity.Property(e => e.AddressResidentialTypeId).HasColumnName("address_residential_type_id");
             entity.Property(e => e.BirthdayDate).HasColumnName("birthday_date");
             entity.Property(e => e.BirthdayPlace)
                 .HasMaxLength(250)
                 .HasColumnName("birthday_place");
+            entity.Property(e => e.BonusScores)
+                .HasDefaultValue((short)0)
+                .HasColumnName("bonus_scores");
+            entity.Property(e => e.Citizenship)
+                .HasMaxLength(100)
+                .HasColumnName("citizenship");
             entity.Property(e => e.Course)
                 .HasMaxLength(100)
                 .HasColumnName("course");
             entity.Property(e => e.CourseOfTraining)
                 .HasMaxLength(300)
                 .HasColumnName("course_of_training");
-            entity.Property(e => e.EduRelationDate).HasColumnName("edu_relation_date");
-            entity.Property(e => e.EduRelationForm)
-                .HasMaxLength(200)
-                .HasColumnName("edu_relation_form");
-            entity.Property(e => e.EduRelationNum)
-                .HasMaxLength(200)
-                .HasColumnName("edu_relation_num");
+            entity.Property(e => e.Education)
+                .HasMaxLength(100)
+                .HasColumnName("education");
             entity.Property(e => e.EducationBase)
                 .HasMaxLength(200)
                 .HasColumnName("education_base");
@@ -163,6 +189,21 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.EducationReceived)
                 .HasMaxLength(200)
                 .HasColumnName("education_received");
+            entity.Property(e => e.EducationReceivedDate).HasColumnName("education_received_date");
+            entity.Property(e => e.EducationReceivedEndYear).HasColumnName("education_received_end_year");
+            entity.Property(e => e.EducationReceivedNum)
+                .HasMaxLength(100)
+                .HasColumnName("education_received_num");
+            entity.Property(e => e.EducationReceivedSerial)
+                .HasMaxLength(100)
+                .HasColumnName("education_received_serial");
+            entity.Property(e => e.EducationRelationDate).HasColumnName("education_relation_date");
+            entity.Property(e => e.EducationRelationForm)
+                .HasMaxLength(200)
+                .HasColumnName("education_relation_form");
+            entity.Property(e => e.EducationRelationNum)
+                .HasMaxLength(200)
+                .HasColumnName("education_relation_num");
             entity.Property(e => e.EducationStartYear).HasColumnName("education_start_year");
             entity.Property(e => e.EducationTime).HasColumnName("education_time");
             entity.Property(e => e.Email)
@@ -206,7 +247,10 @@ public partial class DekautoContext : DbContext
                 .HasMaxLength(200)
                 .HasColumnName("gia_exam_4_note");
             entity.Property(e => e.GiaExam4Score).HasColumnName("gia_exam_4_score");
-            entity.Property(e => e.GradeBookId).HasColumnName("grade_book_id");
+            entity.Property(e => e.GradeBook)
+                .HasMaxLength(100)
+                .HasColumnName("grade_book");
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
             entity.Property(e => e.LivingInDormitory)
                 .HasDefaultValue(false)
                 .HasColumnName("living_in_dormitory");
@@ -219,9 +263,6 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(75)
                 .HasColumnName("name");
-            entity.Property(e => e.NumberOfContract)
-                .HasMaxLength(50)
-                .HasColumnName("number_of_contract");
             entity.Property(e => e.OoExitYear).HasColumnName("OO_exit_year");
             entity.Property(e => e.OoId).HasColumnName("OO_id");
             entity.Property(e => e.PassportIssuanceCode)
@@ -240,9 +281,6 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.Pathronymic)
                 .HasMaxLength(75)
                 .HasColumnName("pathronymic");
-            entity.Property(e => e.PersonalRecord)
-                .HasMaxLength(100)
-                .HasColumnName("personal_record");
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(50)
                 .HasColumnName("phone_number");
@@ -251,10 +289,20 @@ public partial class DekautoContext : DbContext
                 .HasColumnName("surname");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.GradeBook).WithMany(p => p.Students)
-                .HasForeignKey(d => d.GradeBookId)
+            entity.HasOne(d => d.AddressRegistrationTypeObj).WithMany(p => p.StudentAddressRegistrationTypes)
+                .HasForeignKey(d => d.AddressRegistrationTypeId)
                 .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("students_grade_book_id_fkey");
+                .HasConstraintName("students_address_registration_type_id_fkey");
+
+            entity.HasOne(d => d.AddressResidentialTypeObj).WithMany(p => p.StudentAddressResidentialTypes)
+                .HasForeignKey(d => d.AddressResidentialTypeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("students_address_residential_type_id_fkey");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.Students)
+                .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("students_group_id_fkey");
 
             entity.HasOne(d => d.Oo).WithMany(p => p.Students)
                 .HasForeignKey(d => d.OoId)
