@@ -1,6 +1,7 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Group = Dekauto.Students.Service.Students.Service.Domain.Entities.Group;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure
 {
@@ -35,14 +36,40 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             return await _сontext.Students.FirstOrDefaultAsync(student => student.Id == id);
         }
 
-        public Task<IEnumerable<Student>> GetStudentsByGroup(Student student)
+        public async Task<string> GetGroupNameAsync(Guid groupId)
         {
-            throw new NotImplementedException();
+            var group = await _сontext.Groups.FirstOrDefaultAsync(group => group.Id == groupId);
+            return group.Name;
+        }
+        public async Task<string> GetGroupNameAsync(Student student)
+        {
+            var group = await _сontext.Groups.FirstOrDefaultAsync(group => group.Id == student.GroupId);
+            return group.Name;
         }
 
-        public Task<IEnumerable<Student>> GetStudentsByGroup(Guid group_id)
+        public async Task<Oo> GetOoByIdAsync(Guid ooId)
         {
-            throw new NotImplementedException();
+            return await _сontext.Oos.FirstOrDefaultAsync(oo => oo.Id == ooId);
+        }
+
+        public async Task<ResidentialType> GetRegistrationTypeByIdAsync(Guid regTypeId)
+        {
+            return await _сontext.ResidentialTypes.FirstOrDefaultAsync(type => type.Id == regTypeId);
+        }
+
+        public async Task<ResidentialType> GetResidentialTypeByIdAsync(Guid resTypeId)
+        {
+            return await _сontext.ResidentialTypes.FirstOrDefaultAsync(type => type.Id == resTypeId);
+        }
+
+        public async Task<IEnumerable<Student>> GetStudentsByGroupAsync(Student student)
+        {
+            return await _сontext.Students.Where(s => s.GroupId == student.GroupId).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Student>> GetStudentsByGroupAsync(Guid groupId)
+        {
+            return await _сontext.Students.Where(s => s.GroupId == groupId).ToListAsync();
         }
 
         public async Task UpdateAsync(Guid id, Student student)

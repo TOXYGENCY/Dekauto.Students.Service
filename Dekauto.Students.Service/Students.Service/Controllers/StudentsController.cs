@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Dekauto.Students.Service.Students.Service.Infrastructure;
-using Dekauto.Students.Service.Students.Service.Domain.Entities;
+﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
+using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
+using Dekauto.Students.Service.Students.Service.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
@@ -17,19 +12,36 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     {
         private readonly DekautoContext _context;
         private readonly IStudentsRepository _studentsRepository;
+        private readonly IStudentsService _studentsService;
 
-        public StudentsController(DekautoContext context, IStudentsRepository studentsRepository)
+        public StudentsController(DekautoContext context, IStudentsRepository studentsRepository, IStudentsService studentsService)
         {
             _context = context;
             _studentsRepository = studentsRepository;
+            _studentsService = studentsService;
         }
+        // TODO: обезопасить все catch - убрать ex.message из вывода
 
+        // TODO: преобразовать в DTO
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
         {
             try
             {
                 return Ok(await _studentsRepository.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPost("mapped/{studentId}")]
+        public async Task<ActionResult<IEnumerable<Student>>> GetMapped(Guid studentId)
+        {
+            try
+            {
+                return Ok(await _studentsService.ConvertStudent_ToStudentExportDTOAsync(studentId));
             }
             catch (Exception ex)
             {
@@ -53,10 +65,9 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudentAsync(Guid id, Student student)
+        public async Task<IActionResult> UpdateStudentAsync(Guid id, StudentDTO studentDTO)
         {
-            if (id != student.Id) return StatusCode(StatusCodes.Status400BadRequest);
-
+            if (id != studentDTO.Id) return StatusCode(StatusCodes.Status400BadRequest);
             try
             {
                 // TODO: обращение в сервис...
@@ -70,11 +81,12 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Student>> AddStudentAsync(Student student)
+        public async Task<ActionResult<Student>> AddStudentAsync(StudentDTO studentDTO)
         {
             try
             {
-                _studentsRepository.AddAsync(student);
+                var student = await _studentsService.ConvertStudentDTO_ToStudentAsync(studentDTO);
+                await _studentsRepository.AddAsync(student);
                 return Ok();
             }
             catch (Exception ex)

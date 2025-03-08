@@ -4,7 +4,7 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
 {
     public interface IExportProvider
     {
-        Task<(byte[], string)> ExportStudentCardAsync(Student student);
-        Task<(byte[], string)> ExportGroupCardsAsync(IEnumerable<Student> students);
+        Task<(byte[], string)> ExportStudentCardAsync(Guid studentId);
+        Task<(byte[], string)> ExportGroupCardsAsync(Guid groupId);
     }
 }

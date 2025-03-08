@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Text.Json.Serialization;
 
 namespace Dekauto.Students.Service.Students.Service.Domain.Entities;
 
 public partial class Student
 {
     public Guid Id { get; set; }
+
+    public Guid? UserId { get; set; }
 
     public string? Name { get; set; }
 
@@ -32,10 +33,6 @@ public partial class Student
     public string? CourseOfTraining { get; set; }
 
     public string? Course { get; set; }
-
-    public string? NumberOfContract { get; set; }
-
-    public string? PersonalRecord { get; set; }
 
     public string? PassportSerial { get; set; }
 
@@ -81,6 +78,8 @@ public partial class Student
 
     public bool? LivingInDormitory { get; set; }
 
+    public Guid? GroupId { get; set; }
+
     public string? GiaExam1Name { get; set; }
 
     public short? GiaExam1Score { get; set; }
@@ -109,6 +108,10 @@ public partial class Student
 
     public bool? MaritalStatus { get; set; }
 
+    public Guid? OoId { get; set; }
+
+    public short? OoExitYear { get; set; }
+
     public string? EducationReceived { get; set; }
 
     public string? EducationForm { get; set; }
@@ -121,24 +124,48 @@ public partial class Student
 
     public short? EducationTime { get; set; }
 
-    public string? EduRelationForm { get; set; }
+    public string? EducationRelationForm { get; set; }
 
-    public string? EduRelationNum { get; set; }
+    public string? EducationRelationNum { get; set; }
 
-    public DateOnly? EduRelationDate { get; set; }
+    public DateOnly? EducationRelationDate { get; set; }
 
-    public short? OoExitYear { get; set; }
+    public string? EducationReceivedSerial { get; set; }
 
-    public Guid? OoId { get; set; }
+    public string? EducationReceivedNum { get; set; }
 
-    public Guid? GradeBookId { get; set; }
+    public DateOnly? EducationReceivedDate { get; set; }
 
-    public Guid? UserId { get; set; }
+    public short? EducationReceivedEndYear { get; set; }
 
-    // TODO: пофиксить это недоразумение
-    public virtual Group? GradeBook { get; set; }
+    public string? GradeBook { get; set; }
 
+    public short? BonusScores { get; set; }
+
+    public string? Citizenship { get; set; }
+
+    public Guid? AddressRegistrationTypeId { get; set; }
+
+    public Guid? AddressResidentialTypeId { get; set; }
+
+    public string? AddressRegistrationHousingType { get; set; }
+
+    public string? AddressResidentialHousingType { get; set; }
+
+    public string? Education { get; set; }
+
+
+    public virtual ResidentialType? AddressRegistrationTypeObj { get; set; }
+
+    
+    public virtual ResidentialType? AddressResidentialTypeObj { get; set; }
+
+    
+    public virtual Group? Group { get; set; }
+
+    
     public virtual Oo? Oo { get; set; }
 
+    
     public virtual User? User { get; set; }
 }
