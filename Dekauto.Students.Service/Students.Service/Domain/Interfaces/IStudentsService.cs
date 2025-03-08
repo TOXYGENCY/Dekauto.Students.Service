@@ -6,10 +6,13 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
 {
     public interface IStudentsService
     {
-        Task<StudentExportDTO> ConvertStudent_ToStudentExportDTOAsync(Guid studentId);
-        Task<Student> ConvertStudentDTO_ToStudentAsync(StudentDTO studentDTO);
-        Task<IEnumerable<StudentExportDTO>> ConvertStudentsList_ToStudentExportDTOListAsync(IEnumerable<Student> students);
+        Task<Student> FromDtoAsync(StudentDto studentDTO);
 
+        StudentDto ToDto(Student student);
+        IEnumerable<StudentDto> ToDtos(IEnumerable<Student> students);
+
+        Task<StudentExportDto> ToExportDtoAsync(Guid studentId);
+        Task<IEnumerable<StudentExportDto>> ToExportDtosAsync(IEnumerable<Student> students);
 
     }
 }

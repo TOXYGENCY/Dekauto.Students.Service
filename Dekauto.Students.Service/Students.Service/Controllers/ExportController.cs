@@ -15,27 +15,25 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     [ApiController]
     public class ExportController : ControllerBase
     {
-        private readonly DekautoContext _context;
         private readonly IExportProvider _exportProvider;
         private readonly IConfiguration _configuration;
         private readonly IConfigurationSection _exportConfig;
         private readonly string _defaultLatFileName;
 
-        public ExportController(IExportProvider exportProvider, IConfiguration configuration, DekautoContext context)
+        public ExportController(IExportProvider exportProvider, IConfiguration configuration)
         {
             _exportProvider = exportProvider;
             _configuration = configuration;
-            _context = context;
 
             // Сразу находим секцию из конфига
             _exportConfig = _configuration.GetSection("Services").GetSection("Export");
             _defaultLatFileName = _exportConfig.GetValue<string>("defaultLatFileName") ?? "exported_student_card";
         }
 
+        // Проблема: передается только сам файл, а его название автомат. вписывается в заголовки, но без поддержки кириллицы.
+        // Решение: формируем http-заголовок с поддержкой UTF-8 (для поддержки кириллицы в http-заголовках)
         private void _setHeaderFileNames(string fileName, string fileNameStar)
         {
-            // Проблема: передается только сам файл, а его название автомат. вписывается в заголовки, но без поддержки кириллицы.
-            // Решение: формируем http-заголовок с поддержкой UTF-8 (для поддержки кириллицы в http-заголовках)
             var encodedFileName = Uri.EscapeDataString(fileNameStar);
             Response.Headers.Append(
                 "Content-Disposition",
@@ -43,16 +41,15 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             );
         }
 
+
         [HttpPost("export/student/{studentId}")]
         public async Task<IActionResult> ExportStudentCard(Guid studentId)
         {
             try
             {
-                //var student = _context.Students.FirstOrDefault(s => s.Id == studentId);
-                //if (student == null) return StatusCode(StatusCodes.Status400BadRequest);
-
                 var (fileData, fileName) = await _exportProvider.ExportStudentCardAsync(studentId);
                 _setHeaderFileNames(_defaultLatFileName, fileName);
+
                 return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
             catch (Exception ex)
@@ -70,6 +67,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
                 var (fileData, fileName) = await _exportProvider.ExportGroupCardsAsync(groupId);
                 _setHeaderFileNames(_defaultLatFileName, fileName);
+
                 return File(fileData, "application/zip");
             }
             catch (Exception ex)

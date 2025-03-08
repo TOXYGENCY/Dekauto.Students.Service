@@ -1,6 +1,9 @@
 ﻿namespace Dekauto.Students.Service.Students.Service.Domain.Entities.DTO
 {
-    public class StudentDTO
+    /// <summary>
+    /// Класс студента для передачи в любой внешний API. Не имеет в себе ссылок на EF-модели, поэтому безопаснее для передачи данных в любые API.
+    /// </summary>
+    public class StudentDto
     {
         public Guid Id { get; set; }
 
