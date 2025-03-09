@@ -1,4 +1,4 @@
-﻿namespace Dekauto.Students.Service.Students.Service.Domain.Entities.ExportAdapters
+﻿namespace Dekauto.Students.Service.Students.Service.Domain.Entities.DTO
 {
     public class StudentExportDto
     {
