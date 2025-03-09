@@ -81,7 +81,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Student>> AddStudentAsync(StudentDto studentDto)
+        public async Task<IActionResult> AddStudentAsync(StudentDto studentDto)
         {
             try
             {
