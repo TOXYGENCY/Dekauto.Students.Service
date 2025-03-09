@@ -18,7 +18,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             _studentsRepository = studentsRepository;
             _studentsService = studentsService;
         }
-        // TODO: обезопасить все catch - убрать ex.message из вывода
+        // TODO: обезопасить все catch - убрать ex.message из вывода (в продакшен)
 
         [HttpGet("debug")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentsDebug()
@@ -67,14 +67,12 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
         [HttpPut("{studentId}")]
-        public async Task<IActionResult> UpdateStudentAsync(Guid studentId, StudentDto studentDto)
+        public async Task<IActionResult> UpdateStudentAsync(Guid studentId, StudentDto updatedStudentDto)
         {
-            if (studentId != studentDto.Id) return StatusCode(StatusCodes.Status400BadRequest);
             try
             {
-                // TODO: обращение в сервис...
-                //return Ok();
-                return StatusCode(StatusCodes.Status501NotImplemented);
+                await _studentsService.UpdateAsync(studentId, updatedStudentDto);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -87,8 +85,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var student = await _studentsService.FromDtoAsync(studentDto);
-                await _studentsRepository.AddAsync(student);
+                await _studentsService.AddAsync(studentDto);
                 return Ok();
             }
             catch (Exception ex)

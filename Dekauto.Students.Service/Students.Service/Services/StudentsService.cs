@@ -108,5 +108,21 @@ namespace Dekauto.Students.Service.Students.Service.Services
 
             return studentDtos;
         }
+
+        public async Task UpdateAsync(Guid studentId, StudentDto updatedStudentDto)
+        {
+            if (updatedStudentDto == null || studentId == null) throw new ArgumentNullException("Не все аргументы переданы.");
+            if (updatedStudentDto.Id != studentId) throw new ArgumentException("ID не совпадают.");
+
+            var student = _jsonSerializationConvert<StudentDto, Student>(updatedStudentDto);
+            await _studentsRepository.UpdateAsync(student);
+
+        }
+
+        public async Task AddAsync(StudentDto studentDto)
+        {
+            var student = await FromDtoAsync(studentDto);
+            await _studentsRepository.AddAsync(student);
+        }
     }
 }

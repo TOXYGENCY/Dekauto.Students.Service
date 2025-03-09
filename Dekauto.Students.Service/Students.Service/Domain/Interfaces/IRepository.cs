@@ -8,7 +8,7 @@
 
         Task AddAsync(T obj);
 
-        Task UpdateAsync(Guid id, T obj);
+        Task UpdateAsync(T obj);
 
         Task DeleteAsync(Guid id);
     }
