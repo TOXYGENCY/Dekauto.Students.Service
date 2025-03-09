@@ -39,6 +39,8 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
                 "Content-Disposition",
                 $"attachment; filename=\"{fileName}.xlsx\"; filename*=UTF-8''{encodedFileName}"
             );
+            // Явно разрешаем заголовок Content-Disposition в CORS
+            Response.Headers.Append("Access-Control-Expose-Headers", "Content-Disposition");
         }
 
 

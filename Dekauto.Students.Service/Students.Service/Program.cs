@@ -22,6 +22,14 @@ builder.Services.AddTransient<IExportProvider, ExportProvider>();
 builder.Services.AddDbContext<DekautoContext>(options =>
     options.UseNpgsql(connectionString)
     .UseLazyLoadingProxies());
+builder.Services.AddCors(options => options.AddPolicy("AngularLocalhost", policy =>
+{
+    policy.WithOrigins("http://localhost:4200") // Адрес Angular-приложения
+             .AllowAnyHeader()
+             .AllowAnyMethod()
+             .WithExposedHeaders("Content-Disposition")
+             .AllowCredentials();
+}));
 
 var app = builder.Build();
 
@@ -30,6 +38,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.UseCors("AngularLocalhost");
 }
 
 app.UseHttpsRedirection();
