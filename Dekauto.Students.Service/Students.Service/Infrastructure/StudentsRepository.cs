@@ -1,4 +1,5 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
+using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Group = Dekauto.Students.Service.Students.Service.Domain.Entities.Group;
@@ -72,9 +73,12 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             return await _сontext.Students.Where(s => s.GroupId == groupId).ToListAsync();
         }
 
-        public async Task UpdateAsync(Guid id, Student student)
+        public async Task UpdateAsync(Student updatedStudent)
         {
-            throw new NotImplementedException();
+            var currentStudent = await _сontext.Students.FirstOrDefaultAsync(s => s.Id == updatedStudent.Id);
+            if (currentStudent == null) throw new KeyNotFoundException($"Student {updatedStudent.Id} not found");
+
+            _сontext.Entry(currentStudent).CurrentValues.SetValues(updatedStudent);
             await _сontext.SaveChangesAsync();
         }
     }

@@ -5,7 +5,10 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
 {
     public interface IStudentsService
     {
-        Task<Student> FromDtoAsync(StudentDto studentDTO);
+        Task AddAsync(StudentDto studentDto);
+        Task UpdateAsync(Guid studentId, StudentDto updatedStudentDto);
+
+        Task<Student> FromDtoAsync(StudentDto studentDto);
 
         StudentDto ToDto(Student student);
         IEnumerable<StudentDto> ToDtos(IEnumerable<Student> students);
