@@ -36,12 +36,12 @@ namespace Dekauto.Students.Service.Students.Service.Services
         }
 
 
-        public async Task<Group> FromDtoAsync(GroupDto dto)
+        public async Task<Group> FromDtoAsync(GroupDto groupDto)
         {
-            if (dto == null) throw new ArgumentNullException(nameof(dto));
+            if (groupDto == null) throw new ArgumentNullException(nameof(groupDto));
 
-            var group = await _сontext.Groups.FirstOrDefaultAsync(g => g.Id == dto.Id);
-            group ??= _jsonSerializationConvert<GroupDto, Group>(dto);
+            var group = await _сontext.Groups.FirstOrDefaultAsync(g => g.Id == groupDto.Id);
+            group ??= _jsonSerializationConvert<GroupDto, Group>(groupDto);
 
             return group;
 
