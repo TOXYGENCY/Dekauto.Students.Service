@@ -3,12 +3,11 @@ using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Dekauto.Students.Service.Students.Service.Services
 {
-    public class GroupsService : IDtoConverter<Group, GroupDto>
+    public class GroupsService : IGroupsService, IDtoConverter<Group, GroupDto>
     {
         private readonly IGroupsRepository _groupsRepository;
         private readonly DekautoContext _сontext;
@@ -16,6 +15,12 @@ namespace Dekauto.Students.Service.Students.Service.Services
         {
             _сontext = сontext;
             _groupsRepository = groupsRepository;
+        }
+
+        private async Task<Group> _assignEfStudentModelsAsync(Group group)
+        {
+            group.Students = (await _сontext.Groups.FirstOrDefaultAsync(g => g.Id == group.Id)).Students;
+            return group;
         }
 
         /// <summary>
@@ -30,18 +35,26 @@ namespace Dekauto.Students.Service.Students.Service.Services
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
 
-        // TODO: разобраться правильно ли это
+
         public async Task<Group> FromDtoAsync(GroupDto dto)
         {
-            return await _сontext.Groups.FirstOrDefaultAsync(g => g.Id == dto.Id);
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+
+            var group = await _сontext.Groups.FirstOrDefaultAsync(g => g.Id == dto.Id);
+            group ??= _jsonSerializationConvert<GroupDto, Group>(dto);
+
+            return group;
 
         }
 
         public GroupDto ToDto(Group group)
         {
+            if (group == null) throw new ArgumentNullException(nameof(group));
+
             var groupDto = new GroupDto();
             groupDto.Id = group.Id;
             groupDto.Name = group.Name;
+
             return groupDto;
         }
 
@@ -58,6 +71,27 @@ namespace Dekauto.Students.Service.Students.Service.Services
             return groupDtos;
         }
 
-        
+        public async Task UpdateAsync(Guid groupId, GroupDto updatedGroupDto)
+        {
+            if (updatedGroupDto == null || groupId == null) throw new ArgumentNullException("Не все аргументы переданы.");
+            if (updatedGroupDto.Id != groupId) throw new ArgumentException("ID не совпадают.");
+
+            var group = _jsonSerializationConvert<GroupDto, Group>(updatedGroupDto);
+            await _groupsRepository.UpdateAsync(group);
+
+        }
+
+        public async Task AddAsync(GroupDto groupDto)
+        {
+            if (groupDto == null) throw new ArgumentNullException(nameof(groupDto));
+            if (await _сontext.Groups.FirstOrDefaultAsync(g => g.Id == groupDto.Id) == null)
+            {
+                var group = await FromDtoAsync(groupDto);
+                await _groupsRepository.AddAsync(group);
+            } else
+            {
+                throw new Exception($"Такой элемент уже существует в базе данных; ID = {groupDto.Id}.");
+            }
+        }
     }
 }

@@ -55,8 +55,8 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             try
             {
                 var group = await _groupsRepository.GetByIdAsync(groupId);
+                if (group == null) return StatusCode(StatusCodes.Status404NotFound);
                 var groupDto = _groupsService.ToDto(group);
-                if (groupDto == null) return StatusCode(StatusCodes.Status404NotFound);
                 return Ok(groupDto);
             }
             catch (Exception ex)
