@@ -56,8 +56,8 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             try
             {
                 var student = await _studentsRepository.GetByIdAsync(studentId);
+                if (student == null) return StatusCode(StatusCodes.Status404NotFound);
                 var studentDto = _studentsService.ToDto(student);
-                if (studentDto == null) return StatusCode(StatusCodes.Status404NotFound);
                 return Ok(studentDto);
             }
             catch (Exception ex)

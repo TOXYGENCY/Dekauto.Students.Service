@@ -1,9 +1,7 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
-using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
-using Elfie.Serialization;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -70,13 +68,12 @@ namespace Dekauto.Students.Service.Students.Service.Services
         {
             if (studentDto == null) throw new ArgumentNullException(nameof(studentDto));
 
-            var student = _jsonSerializationConvert<StudentDto, Student>(studentDto);
-            student = await _assignEfStudentModelsAsync(student);
+            var student = await _сontext.Students.FirstOrDefaultAsync(s => s.Id == studentDto.Id);
+            student ??= _jsonSerializationConvert<StudentDto, Student>(studentDto);
 
             return student;
         }
 
-        // TODO INFO: все методы принимающие id забирают объекты из БД, а не испольуют переданные
         public async Task<IEnumerable<StudentExportDto>> ToExportDtosAsync(IEnumerable<Student> students)
         {
             if (students == null) throw new ArgumentNullException(nameof(students));
@@ -121,8 +118,16 @@ namespace Dekauto.Students.Service.Students.Service.Services
 
         public async Task AddAsync(StudentDto studentDto)
         {
-            var student = await FromDtoAsync(studentDto);
-            await _studentsRepository.AddAsync(student);
+            if (studentDto == null) throw new ArgumentNullException(nameof(studentDto));
+            if (await _сontext.Students.FirstOrDefaultAsync(g => g.Id == studentDto.Id) == null)
+            {
+                var student = await FromDtoAsync(studentDto);
+                await _studentsRepository.AddAsync(student);
+            }
+            else
+            {
+                throw new Exception($"Такой элемент уже существует в базе данных; ID = {studentDto.Id}.");
+            }
         }
     }
 }

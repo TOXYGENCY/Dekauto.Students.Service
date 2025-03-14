@@ -135,14 +135,12 @@ public sealed class StudentsControllerTests
     }
 
     [TestMethod]
-    public async Task GetStudentById_ServNull_Status404()
+    public async Task GetStudentById_RepoNull_Status404()
     {
         // Arrange
         var id = new Guid();
         _studentsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
-            .ReturnsAsync(new Student());
-        _studentsServiceMock.Setup(x => x.ToDto(It.IsAny<Student>()))
-            .Returns((StudentDto)null);
+            .ReturnsAsync((Student)null);
 
         _studentsController = new StudentsController(_studentsRepositoryMock.Object, _studentsServiceMock.Object);
 

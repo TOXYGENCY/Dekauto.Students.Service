@@ -1,8 +1,6 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
-using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Group = Dekauto.Students.Service.Students.Service.Domain.Entities.Group;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure
 {

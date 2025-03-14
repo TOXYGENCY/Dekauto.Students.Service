@@ -1,3 +1,4 @@
+using Dekauto.groups.Service.groups.Service.Infrastructure;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Dekauto.Students.Service.Students.Service.Services;
@@ -21,7 +22,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
+builder.Services.AddTransient<IGroupsRepository, GroupsRepository>();
 builder.Services.AddTransient<IStudentsService, StudentsService>();
+builder.Services.AddTransient<IGroupsService, GroupsService>();
 builder.Services.AddTransient<IExportProvider, ExportProvider>();
 builder.Services.AddDbContext<DekautoContext>(options =>
     options.UseNpgsql(connectionString)
