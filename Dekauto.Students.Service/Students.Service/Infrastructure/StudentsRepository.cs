@@ -51,16 +51,6 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             return await _сontext.Oos.FirstOrDefaultAsync(oo => oo.Id == ooId);
         }
 
-        public async Task<ResidentialType> GetRegistrationTypeByIdAsync(Guid regTypeId)
-        {
-            return await _сontext.ResidentialTypes.FirstOrDefaultAsync(type => type.Id == regTypeId);
-        }
-
-        public async Task<ResidentialType> GetResidentialTypeByIdAsync(Guid resTypeId)
-        {
-            return await _сontext.ResidentialTypes.FirstOrDefaultAsync(type => type.Id == resTypeId);
-        }
-
         public async Task<IEnumerable<Student>> GetStudentsByGroupAsync(Student student)
         {
             return await _сontext.Students.Where(s => s.GroupId == student.GroupId).ToListAsync();

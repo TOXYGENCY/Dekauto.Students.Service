@@ -13,7 +13,7 @@
 
         public string? Surname { get; set; }
 
-        public string? Pathronymic { get; set; }
+        public string? Patronymic { get; set; }
 
         public bool? Gender { get; set; }
 
@@ -145,9 +145,9 @@
 
         public string? Citizenship { get; set; }
 
-        public Guid? AddressRegistrationTypeId { get; set; }
+        public string? AddressRegistrationType { get; set; }
 
-        public Guid? AddressResidentialTypeId { get; set; }
+        public string? AddressResidentialType { get; set; }
 
         public string? AddressRegistrationHousingType { get; set; }
 

@@ -22,6 +22,7 @@ builder.Services.AddTransient<IGroupsRepository, GroupsRepository>();
 builder.Services.AddTransient<IStudentsService, StudentsService>();
 builder.Services.AddTransient<IGroupsService, GroupsService>();
 builder.Services.AddTransient<IExportProvider, ExportProvider>();
+builder.Services.AddTransient<IImportProvider, ImportProvider>();
 builder.Services.AddDbContext<DekautoContext>(options =>
     options.UseNpgsql(connectionString)
     .UseLazyLoadingProxies());

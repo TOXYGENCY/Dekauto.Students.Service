@@ -1,38 +1,33 @@
-﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
-using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
-using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
+﻿using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure
 {
     public class ExportProvider : IExportProvider
     {
         // используем HttpClientFactory, потому что оно само управляет жизненным циклом соединения и диспозит их + можно мокать
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration configuration;
         private readonly IConfigurationSection _exportConfig;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IStudentsRepository _studentsRepository;
-        private readonly IStudentsService _studentsService;
+        private readonly IHttpClientFactory httpClientFactory;
+        private readonly IStudentsRepository studentsRepository;
+        private readonly IStudentsService studentsService;
         private readonly string _defaultLatFileName;
 
         public ExportProvider(IHttpClientFactory httpClientFactory, IConfiguration configuration,
                 IStudentsService studentsService, IStudentsRepository studentsRepository)
         {
-            _configuration = configuration;
-            _httpClientFactory = httpClientFactory;
-            _studentsRepository = studentsRepository;
-            _studentsService = studentsService;
+            this.configuration = configuration;
+            this.httpClientFactory = httpClientFactory;
+            this.studentsRepository = studentsRepository;
+            this.studentsService = studentsService;
 
             // Сразу находим секцию из конфига
-            _exportConfig = _configuration.GetSection("Services").GetSection("Export");
+            _exportConfig = this.configuration.GetSection("Services").GetSection("Export");
             _defaultLatFileName = _exportConfig["defaultLatFileName"] ?? "exported_student_card";
         }
 
-        private async Task<(byte[], string)> _exportFile(object data, string apiUrl)
+        private async Task<(byte[], string)> ExportFile(object data, string apiUrl)
         {
-            HttpClient http = _httpClientFactory.CreateClient();
+            HttpClient http = httpClientFactory.CreateClient();
             // Посылаем запрос в сервис Экспорт
             var response = await http.PostAsJsonAsync(apiUrl, data);
             response.EnsureSuccessStatusCode();
@@ -48,10 +43,10 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
         public async Task<(byte[], string)> ExportStudentCardAsync(Guid studentId)
         {
-            //var student = _studentsRepository.GetByIdAsync(studentId);
+            //var student = studentsRepository.GetByIdAsync(studentId);
 
             if (studentId == null) throw new ArgumentNullException(nameof(studentId));
-            var studentExportDTO = await _studentsService.ToExportDtoAsync(studentId);
+            var studentExportDTO = await studentsService.ToExportDtoAsync(studentId);
 
             if (studentExportDTO == null) throw new ArgumentNullException(nameof(studentExportDTO));
             // Получаем адрес API из подробного конфига
@@ -59,22 +54,22 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             var apiUrl = _exportConfig["student_card"];
             if (apiUrl == null) throw new ArgumentNullException(nameof(apiUrl));
 
-            return await _exportFile(studentExportDTO, apiUrl);
+            return await ExportFile(studentExportDTO, apiUrl);
         }
 
         public async Task<(byte[], string)> ExportGroupCardsAsync(Guid groupId)
         {
             if (groupId == null) throw new ArgumentNullException(nameof(groupId));
-            var students = await _studentsRepository.GetStudentsByGroupAsync(groupId);
+            var students = await studentsRepository.GetStudentsByGroupAsync(groupId);
             if (!students.Any()) throw new ArgumentException($"Список студентов \"{nameof(students)}\" пуст.");
-            var studentExportDTOs = await _studentsService.ToExportDtosAsync(students);
+            var studentExportDTOs = await studentsService.ToExportDtosAsync(students);
 
             if (!studentExportDTOs.Any()) throw new ArgumentException($"Список студентов \"{nameof(studentExportDTOs)}\" пуст.");
             // Получаем адрес API из подробного конфига
             var apiUrl = _exportConfig["group_cards"];
             if (apiUrl == null) throw new ArgumentNullException(nameof(apiUrl));
 
-            return await _exportFile(studentExportDTOs, apiUrl);
+            return await ExportFile(studentExportDTOs, apiUrl);
         }
     }
 }

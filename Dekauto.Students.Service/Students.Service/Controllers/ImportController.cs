@@ -1,8 +1,6 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities.Adapters;
-using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
-using Microsoft.AspNetCore.Http;
+using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Metadata;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
@@ -11,22 +9,20 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     public class ImportController : ControllerBase
     {
         private readonly IConfiguration configuration;
-        public ImportController(IConfiguration configuration)
+        private readonly IImportProvider importProvider;
+        public ImportController(IConfiguration configuration, IImportProvider importProvider)
         {
             this.configuration = configuration;
+            this.importProvider = importProvider;
         }
 
         [HttpPost]
-        public async Task<ActionResult> ImportFiles([FromForm] ImportFilesAdapter files)
+        public async Task<ActionResult> ImportFilesFromFrontend([FromForm] ImportFilesAdapter files)
         {
             try
             {
-                if (files.ld != null) { using var stream = files.ld.OpenReadStream(); } // Обработка файла ЛД
-                if (files.log != null) { using var stream = files.log.OpenReadStream(); }
-                if (files.log2 != null) { using var stream = files.log2.OpenReadStream(); }
-
-                // TODO: вызов importProvider = направление на сервис импорта
-                return Ok(files);
+                await importProvider.ImportFilesAsync(files);
+                return Ok();
             }
             catch (Exception ex)
             {
