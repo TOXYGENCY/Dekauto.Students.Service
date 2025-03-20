@@ -12,6 +12,7 @@ public partial class DekautoContext : DbContext
     public DekautoContext(DbContextOptions<DekautoContext> options)
         : base(options)
     {
+
     }
 
     public virtual DbSet<Group> Groups { get; set; }
@@ -24,9 +25,9 @@ public partial class DekautoContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql();
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("uuid-ossp");
