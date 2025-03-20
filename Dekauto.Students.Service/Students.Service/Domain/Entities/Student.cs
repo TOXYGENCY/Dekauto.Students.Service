@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
 
-namespace Dekauto.Students.Service.Students.Service.Domain.Entities;
+namespace Dekauto.Students.Service;
 
 public partial class Student
 {
@@ -12,7 +12,7 @@ public partial class Student
 
     public string? Surname { get; set; }
 
-    public string? Pathronymic { get; set; }
+    public string? Patronymic { get; set; }
 
     public bool? Gender { get; set; }
 
@@ -144,9 +144,9 @@ public partial class Student
 
     public string? Citizenship { get; set; }
 
-    public Guid? AddressRegistrationTypeId { get; set; }
+    public string? AddressRegistrationType { get; set; }
 
-    public Guid? AddressResidentialTypeId { get; set; }
+    public string? AddressResidentialType { get; set; }
 
     public string? AddressRegistrationHousingType { get; set; }
 
@@ -154,18 +154,9 @@ public partial class Student
 
     public string? Education { get; set; }
 
-
-    public virtual ResidentialType? AddressRegistrationTypeObj { get; set; }
-
-    
-    public virtual ResidentialType? AddressResidentialTypeObj { get; set; }
-
-    
     public virtual Group? Group { get; set; }
 
-    
     public virtual Oo? Oo { get; set; }
 
-    
     public virtual User? User { get; set; }
 }

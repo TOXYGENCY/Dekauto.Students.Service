@@ -1,4 +1,4 @@
-﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
+﻿using Dekauto.Students.Service;
 using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
@@ -7,7 +7,6 @@ using Moq;
 using Students.Tests.Entities;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text.RegularExpressions;
 
 namespace Students.Tests
 {

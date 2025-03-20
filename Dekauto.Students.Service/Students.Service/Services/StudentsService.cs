@@ -9,13 +9,13 @@ namespace Dekauto.Students.Service.Students.Service.Services
 {
     public class StudentsService : IStudentsService
     {
-        private readonly IStudentsRepository _studentsRepository;
-        private readonly DekautoContext _сontext;
+        private readonly IStudentsRepository studentsRepository;
+        private readonly DekautoContext context;
 
         public StudentsService(IStudentsRepository studentsRepository, DekautoContext сontext)
         {
-            _studentsRepository = studentsRepository;
-            _сontext = сontext;
+            this.studentsRepository = studentsRepository;
+            this.context = сontext;
         }
 
         /// <summary>
@@ -25,38 +25,34 @@ namespace Dekauto.Students.Service.Students.Service.Services
         /// <typeparam name="DEST"></typeparam>
         /// <param name="src"></param>
         /// <returns></returns>
-        private DEST _jsonSerializationConvert<SRC, DEST>(SRC src)
+        public DEST JsonSerializationConvert<SRC, DEST>(SRC src)
         {
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
 
-        private async Task<Student> _assignEfStudentModelsAsync(Student student)
+        private async Task<Student> AssignEfStudentModelsAsync(Student student)
         {
             // Только один объект, потому что в нем содержатся нужные id
             // INFO: тут допустимы присвоения null
-            student.User = await _сontext.Users.FirstOrDefaultAsync(u => u.Id == student.UserId);
-            student.Group = await _сontext.Groups.FirstOrDefaultAsync(gr => gr.Id == student.GroupId);
-            student.Oo = await _сontext.Oos.FirstOrDefaultAsync(oo => oo.Id == student.OoId);
-            student.AddressResidentialTypeObj = await _сontext.ResidentialTypes.FirstOrDefaultAsync(type => type.Id == student.AddressResidentialTypeId);
-            student.AddressRegistrationTypeObj = await _сontext.ResidentialTypes.FirstOrDefaultAsync(type => type.Id == student.AddressRegistrationTypeId);
+            student.User = await context.Users.FirstOrDefaultAsync(u => u.Id == student.UserId);
+            student.Group = await context.Groups.FirstOrDefaultAsync(gr => gr.Id == student.GroupId);
+            student.Oo = await context.Oos.FirstOrDefaultAsync(oo => oo.Id == student.OoId);
 
             return student;
         }
 
         public async Task<StudentExportDto> ToExportDtoAsync(Guid studentId)
         {
-            var student = await _studentsRepository.GetByIdAsync(studentId);
+            var student = await studentsRepository.GetByIdAsync(studentId);
             if (student == null) throw new ArgumentNullException(nameof(student));
             
             // Конвертируем общие поля
-            var studentExportDto = _jsonSerializationConvert<Student, StudentExportDto>(student);
+            var studentExportDto = JsonSerializationConvert<Student, StudentExportDto>(student);
 
             // Дополняем объект нужными данными из БД
             studentExportDto.GroupName = student.Group.Name;
             studentExportDto.OOName = student.Oo.Name;
             studentExportDto.OOAddress = student.Oo.OoAddress;
-            studentExportDto.AddressResidentialType = student.AddressResidentialTypeObj.Name;
-            studentExportDto.AddressRegistrationType = student.AddressRegistrationTypeObj.Name;
             studentExportDto.EducationReceivedNum = student.EducationReceivedNum;
             studentExportDto.EducationReceivedSerial = student.EducationReceivedSerial;
             studentExportDto.EducationReceivedEndYear = student.EducationReceivedEndYear;
@@ -68,8 +64,8 @@ namespace Dekauto.Students.Service.Students.Service.Services
         {
             if (studentDto == null) throw new ArgumentNullException(nameof(studentDto));
 
-            var student = await _сontext.Students.FirstOrDefaultAsync(s => s.Id == studentDto.Id);
-            student ??= _jsonSerializationConvert<StudentDto, Student>(studentDto);
+            var student = await context.Students.FirstOrDefaultAsync(s => s.Id == studentDto.Id);
+            student ??= JsonSerializationConvert<StudentDto, Student>(studentDto);
 
             return student;
         }
@@ -90,7 +86,7 @@ namespace Dekauto.Students.Service.Students.Service.Services
         public StudentDto ToDto(Student student)
         {
             if (student == null) throw new ArgumentNullException(nameof(student));
-            return _jsonSerializationConvert<Student, StudentDto>(student);
+            return JsonSerializationConvert<Student, StudentDto>(student);
         }
         
         public IEnumerable<StudentDto> ToDtos(IEnumerable<Student> students)
@@ -100,7 +96,7 @@ namespace Dekauto.Students.Service.Students.Service.Services
             var studentDtos = new List<StudentDto>();
             foreach (var student in students)
             {
-                studentDtos.Add(_jsonSerializationConvert<Student, StudentDto>(student));
+                studentDtos.Add(JsonSerializationConvert<Student, StudentDto>(student));
             }
 
             return studentDtos;
@@ -111,23 +107,74 @@ namespace Dekauto.Students.Service.Students.Service.Services
             if (updatedStudentDto == null || studentId == null) throw new ArgumentNullException("Не все аргументы переданы.");
             if (updatedStudentDto.Id != studentId) throw new ArgumentException("ID не совпадают.");
 
-            var student = _jsonSerializationConvert<StudentDto, Student>(updatedStudentDto);
-            await _studentsRepository.UpdateAsync(student);
+            var student = JsonSerializationConvert<StudentDto, Student>(updatedStudentDto);
+            await studentsRepository.UpdateAsync(student);
 
         }
 
         public async Task AddAsync(StudentDto studentDto)
         {
             if (studentDto == null) throw new ArgumentNullException(nameof(studentDto));
-            if (await _сontext.Students.FirstOrDefaultAsync(g => g.Id == studentDto.Id) == null)
+            if (await context.Students.FirstOrDefaultAsync(g => g.Id == studentDto.Id) == null)
             {
                 var student = await FromDtoAsync(studentDto);
-                await _studentsRepository.AddAsync(student);
+                await studentsRepository.AddAsync(student);
             }
             else
             {
                 throw new Exception($"Такой элемент уже существует в базе данных; ID = {studentDto.Id}.");
             }
+        }
+        // TODO: доделать
+        public async Task<IEnumerable<Student>> FromExportDtosAsync(IEnumerable<StudentExportDto> studentExportDtos)
+        {
+            var students = new List<Student>();
+
+            foreach (var studentExportDto in studentExportDtos)
+            {
+                students.Add(await FromExportDtoAndIntoDbAsync(studentExportDto));
+            }
+
+            return students;
+        }
+
+            // studentExportDto - без id, но с данными. student - с id, но без данных
+            // найти все внешние id и прицепить в id student
+        private async Task<Student> FromExportDtoAndIntoDbAsync(StudentExportDto studentExportDto)
+        {
+            var student = JsonSerializationConvert<StudentExportDto, Student>(studentExportDto);
+
+            // TODO: Убрать все добавления в соответствующие сервисы/репозитории
+            var group = await context.Groups.FirstOrDefaultAsync(x => x.Name == studentExportDto.GroupName);
+            if (group != null)
+            {
+                student.GroupId = group.Id;
+                student.Group = group;
+            }
+            else
+            {
+                var newGroup = new Group();
+                newGroup.Name = studentExportDto.GroupName;
+                await context.Groups.AddAsync(newGroup);
+            }
+
+            var oo = await context.Oos.FirstOrDefaultAsync(x => x.Name == studentExportDto.OOName);
+            if (oo != null)
+            {
+                student.OoId = oo.Id;
+                student.Oo = oo;
+            }
+            else
+            {
+                var newOo = new Oo();
+                newOo.Name = studentExportDto.OOName;
+                newOo.OoAddress = studentExportDto.OOAddress;
+                await context.Oos.AddAsync(newOo);
+            }
+
+            await context.SaveChangesAsync();
+
+            return student;
         }
     }
 }

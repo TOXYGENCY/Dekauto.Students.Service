@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Dekauto.Students.Service.Students.Service.Domain.Entities;
+﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure;
@@ -21,16 +19,19 @@ public partial class DekautoContext : DbContext
 
     public virtual DbSet<Oo> Oos { get; set; }
 
-    public virtual DbSet<ResidentialType> ResidentialTypes { get; set; }
-
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("uuid-ossp");
+
         modelBuilder.Entity<Group>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("groups_pkey");
@@ -40,7 +41,7 @@ public partial class DekautoContext : DbContext
             entity.HasIndex(e => e.Name, "groups_name_key").IsUnique();
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
@@ -54,7 +55,7 @@ public partial class DekautoContext : DbContext
             entity.ToTable("OO");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(200)
@@ -64,20 +65,6 @@ public partial class DekautoContext : DbContext
                 .HasColumnName("OO_address");
         });
 
-        modelBuilder.Entity<ResidentialType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("residential_types_pkey");
-
-            entity.ToTable("residential_types");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .HasColumnName("name");
-        });
-
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("roles_pkey");
@@ -85,7 +72,7 @@ public partial class DekautoContext : DbContext
             entity.ToTable("roles");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -99,7 +86,7 @@ public partial class DekautoContext : DbContext
             entity.ToTable("students");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.AddressRegistrationApartment)
                 .HasMaxLength(20)
@@ -128,7 +115,9 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.AddressRegistrationStreet)
                 .HasMaxLength(400)
                 .HasColumnName("address_registration_street");
-            entity.Property(e => e.AddressRegistrationTypeId).HasColumnName("address_registration_type_id");
+            entity.Property(e => e.AddressRegistrationType)
+                .HasMaxLength(50)
+                .HasColumnName("address_registration_type");
             entity.Property(e => e.AddressResidentialApartment)
                 .HasMaxLength(20)
                 .HasColumnName("address_residential_apartment");
@@ -156,7 +145,9 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.AddressResidentialStreet)
                 .HasMaxLength(400)
                 .HasColumnName("address_residential_street");
-            entity.Property(e => e.AddressResidentialTypeId).HasColumnName("address_residential_type_id");
+            entity.Property(e => e.AddressResidentialType)
+                .HasMaxLength(50)
+                .HasColumnName("address_residential_type");
             entity.Property(e => e.BirthdayDate).HasColumnName("birthday_date");
             entity.Property(e => e.BirthdayPlace)
                 .HasMaxLength(250)
@@ -275,9 +266,9 @@ public partial class DekautoContext : DbContext
             entity.Property(e => e.PassportSerial)
                 .HasMaxLength(20)
                 .HasColumnName("passport_serial");
-            entity.Property(e => e.Pathronymic)
+            entity.Property(e => e.Patronymic)
                 .HasMaxLength(75)
-                .HasColumnName("pathronymic");
+                .HasColumnName("patronymic");
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(50)
                 .HasColumnName("phone_number");
@@ -285,16 +276,6 @@ public partial class DekautoContext : DbContext
                 .HasMaxLength(75)
                 .HasColumnName("surname");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-
-            entity.HasOne(d => d.AddressRegistrationTypeObj).WithMany(p => p.StudentAddressRegistrationTypes)
-                .HasForeignKey(d => d.AddressRegistrationTypeId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("students_address_registration_type_id_fkey");
-
-            entity.HasOne(d => d.AddressResidentialTypeObj).WithMany(p => p.StudentAddressResidentialTypes)
-                .HasForeignKey(d => d.AddressResidentialTypeId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("students_address_residential_type_id_fkey");
 
             entity.HasOne(d => d.Group).WithMany(p => p.Students)
                 .HasForeignKey(d => d.GroupId)
@@ -319,7 +300,7 @@ public partial class DekautoContext : DbContext
             entity.ToTable("users");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.Login)
                 .HasMaxLength(100)

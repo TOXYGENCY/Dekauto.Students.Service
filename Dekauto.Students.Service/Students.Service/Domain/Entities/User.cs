@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Dekauto.Students.Service.Students.Service.Domain.Entities;
+﻿namespace Dekauto.Students.Service;
 
 public partial class User
 {
@@ -12,9 +10,7 @@ public partial class User
 
     public Guid RoleId { get; set; }
 
-    [JsonIgnore]
     public virtual Role Role { get; set; } = null!;
 
-    [JsonIgnore]
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }
