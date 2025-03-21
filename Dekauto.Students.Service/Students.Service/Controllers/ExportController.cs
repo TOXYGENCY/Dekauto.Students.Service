@@ -7,19 +7,19 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     [ApiController]
     public class ExportController : ControllerBase
     {
-        private readonly IExportProvider _exportProvider;
-        private readonly IConfiguration _configuration;
-        private readonly IConfigurationSection _exportConfig;
-        private readonly string _defaultLatFileName;
+        private readonly IExportProvider exportProvider;
+        private readonly IConfiguration configuration;
+        private readonly IConfigurationSection exportConfig;
+        private readonly string defaultLatFileName;
 
         public ExportController(IExportProvider exportProvider, IConfiguration configuration)
         {
-            _exportProvider = exportProvider;
-            _configuration = configuration;
+            this.exportProvider = exportProvider;
+            this.configuration = configuration;
 
             // Сразу находим секцию из конфига
-            _exportConfig = _configuration.GetSection("Services").GetSection("Export");
-            _defaultLatFileName = _exportConfig.GetValue<string>("defaultLatFileName") ?? "exported_student_card";
+            exportConfig = this.configuration.GetSection("Services").GetSection("Export");
+            defaultLatFileName = exportConfig.GetValue<string>("defaultLatFileName") ?? "exported_student_card";
         }
 
         // Проблема: передается только сам файл, а его название автомат. вписывается в заголовки, но без поддержки кириллицы.
@@ -41,8 +41,8 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var (fileData, fileName) = await _exportProvider.ExportStudentCardAsync(studentId);
-                _setHeaderFileNames(_defaultLatFileName, fileName);
+                var (fileData, fileName) = await exportProvider.ExportStudentCardAsync(studentId);
+                _setHeaderFileNames(defaultLatFileName, fileName);
 
                 return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
@@ -59,8 +59,8 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             {
                 if (groupId == null) return StatusCode(StatusCodes.Status400BadRequest);
 
-                var (fileData, fileName) = await _exportProvider.ExportGroupCardsAsync(groupId);
-                _setHeaderFileNames(_defaultLatFileName, fileName);
+                var (fileData, fileName) = await exportProvider.ExportGroupCardsAsync(groupId);
+                _setHeaderFileNames(defaultLatFileName, fileName);
 
                 return File(fileData, "application/zip");
             }
