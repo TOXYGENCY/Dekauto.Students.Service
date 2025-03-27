@@ -373,4 +373,4 @@ FodyWeavers.xsd
 
 #Игнор SSL Сертификата
 *.pfx
-**/*.pfx
+**/*.pfx 
