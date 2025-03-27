@@ -13,7 +13,6 @@ EXPOSE 5501 5502
 
 
 ENV ASPNETCORE_ENVIRONMENT=Development
-ENV ConnectionStrings__Main=Host=host.docker.internal;Port=5432;Database=Dekauto;Username=postgres;Password=;
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
