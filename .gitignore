@@ -367,3 +367,10 @@ FodyWeavers.xsd
 /db-create-dekauto-v2.7.sql
 /db-create-dekauto-pre-release-v2.sql
 /db-create-dekauto-pre-release-v2.3.sql
+
+#Игнор секретных штук докера
+.env
+
+#Игнор SSL Сертификата
+*.pfx
+**/*.pfx
