@@ -57,7 +57,7 @@ if (app.Environment.IsDevelopment())
 } else
 {
     app.Urls.Add("https://*:5502");
-    app.UseHttpsRedirection(); // без http редиректа в dev-версии
+    app.UseHttpsRedirection(); // без https редиректа в dev-версии
 }
 
 
