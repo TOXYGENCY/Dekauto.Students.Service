@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
-    [Route("api/")]
+    [Route("api/export")]
     [ApiController]
     public class ExportController : ControllerBase
     {
@@ -24,7 +24,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
         // Проблема: передается только сам файл, а его название автомат. вписывается в заголовки, но без поддержки кириллицы.
         // Решение: формируем http-заголовок с поддержкой UTF-8 (для поддержки кириллицы в http-заголовках)
-        private void _setHeaderFileNames(string fileName, string fileNameStar)
+        private void SetHeaderFileNames(string fileName, string fileNameStar)
         {
             var encodedFileName = Uri.EscapeDataString(fileNameStar);
             Response.Headers.Append(
@@ -36,23 +36,23 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
 
-        [HttpPost("export/student/{studentId}")]
+        [HttpPost("student/{studentId}")]
         public async Task<IActionResult> ExportStudentCard(Guid studentId)
         {
             try
             {
                 var (fileData, fileName) = await exportProvider.ExportStudentCardAsync(studentId);
-                _setHeaderFileNames(defaultLatFileName, fileName);
+                SetHeaderFileNames(defaultLatFileName, fileName);
 
                 return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
-        [HttpPost("export/group/{groupId}")]
+        [HttpPost("group/{groupId}")]
         public async Task<IActionResult> ExportGroupCards(Guid groupId)
         {
             try
@@ -60,13 +60,13 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
                 if (groupId == null) return StatusCode(StatusCodes.Status400BadRequest);
 
                 var (fileData, fileName) = await exportProvider.ExportGroupCardsAsync(groupId);
-                _setHeaderFileNames(defaultLatFileName, fileName);
+                SetHeaderFileNames(defaultLatFileName, fileName);
 
                 return File(fileData, "application/zip");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
     }

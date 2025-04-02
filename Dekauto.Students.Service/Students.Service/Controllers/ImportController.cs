@@ -24,7 +24,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
     }

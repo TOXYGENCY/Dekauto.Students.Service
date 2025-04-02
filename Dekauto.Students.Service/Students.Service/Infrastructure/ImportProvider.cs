@@ -54,9 +54,9 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
         public async Task ImportFilesAsync(ImportFilesAdapter files)
         {
             if (files == null) throw new ArgumentNullException(nameof(files));
-            if (files.ld != null) throw new ArgumentNullException(nameof(files.ld));
-            if (files.contract != null) throw new ArgumentNullException(nameof(files.contract));
-            if (files.journal != null) throw new ArgumentNullException(nameof(files.journal));
+            if (files.ld == null) throw new ArgumentNullException(nameof(files.ld));
+            if (files.contract == null) throw new ArgumentNullException(nameof(files.contract));
+            if (files.journal == null) throw new ArgumentNullException(nameof(files.journal));
 
             // Отправка запроса в сервис "Импорт" и получение готового массива
             var newStudents = await SendImportAsync(files);

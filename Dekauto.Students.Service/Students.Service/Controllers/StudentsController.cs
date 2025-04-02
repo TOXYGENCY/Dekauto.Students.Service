@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
-    [Route("api/")]
+    [Route("api")]
     [ApiController]
     public class StudentsController : ControllerBase
     {
@@ -28,7 +28,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -44,7 +44,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -60,7 +60,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -74,7 +74,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -88,7 +88,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -104,7 +104,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
     }
