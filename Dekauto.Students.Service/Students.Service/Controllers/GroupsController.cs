@@ -8,13 +8,13 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     [ApiController]
     public class GroupsController : ControllerBase
     {
-        private readonly IGroupsRepository _groupsRepository;
-        private readonly IGroupsService _groupsService;
+        private readonly IGroupsRepository groupsRepository;
+        private readonly IGroupsService groupsService;
 
         public GroupsController(IGroupsRepository groupsRepository, IGroupsService groupsService)
         {
-            _groupsRepository = groupsRepository;
-            _groupsService = groupsService;
+            this.groupsRepository = groupsRepository;
+            this.groupsService = groupsService;
         }
         // TODO: обезопасить все catch - убрать ex.message из вывода (в продакшен)
 
@@ -23,7 +23,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var groups = await _groupsRepository.GetAllAsync();
+                var groups = await groupsRepository.GetAllAsync();
                 return Ok(groups);
             }
             catch (Exception ex)
@@ -38,8 +38,8 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var groups = await _groupsRepository.GetAllAsync();
-                var groupsDto = _groupsService.ToDtos(groups);
+                var groups = await groupsRepository.GetAllAsync();
+                var groupsDto = groupsService.ToDtos(groups);
                 return Ok(groupsDto);
             }
             catch (Exception ex)
@@ -53,9 +53,9 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var group = await _groupsRepository.GetByIdAsync(groupId);
+                var group = await groupsRepository.GetByIdAsync(groupId);
                 if (group == null) return StatusCode(StatusCodes.Status404NotFound);
-                var groupDto = _groupsService.ToDto(group);
+                var groupDto = groupsService.ToDto(group);
                 return Ok(groupDto);
             }
             catch (Exception ex)
@@ -69,7 +69,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                await _groupsService.UpdateAsync(groupId, updatedGroupDto);
+                await groupsService.UpdateAsync(groupId, updatedGroupDto);
                 return Ok();
             }
             catch (Exception ex)
@@ -83,7 +83,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                await _groupsService.AddAsync(groupDto);
+                await groupsService.AddAsync(groupDto);
                 return Ok();
             }
             catch (Exception ex)
@@ -99,7 +99,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             try
             {
                 if (groupId == null) return StatusCode(StatusCodes.Status400BadRequest);
-                await _groupsRepository.DeleteAsync(groupId);
+                await groupsRepository.DeleteAsync(groupId);
                 return Ok();
             }
             catch (Exception ex)

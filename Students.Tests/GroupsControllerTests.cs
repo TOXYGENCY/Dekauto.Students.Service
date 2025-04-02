@@ -11,31 +11,31 @@ namespace Students.Tests;
 [TestClass]
 public sealed class GroupsControllerTests
 {
-    private Mock<IGroupsService> _groupsServiceMock;
-    private Mock<IGroupsRepository> _groupsRepositoryMock;
-    private GroupsController _groupsController;
+    private Mock<IGroupsService> groupsServiceMock;
+    private Mock<IGroupsRepository> groupsRepositoryMock;
+    private GroupsController groupsController;
 
 
     [TestInitialize]
     public void Setup()
     {
-        _groupsServiceMock = new Mock<IGroupsService>();
-        _groupsRepositoryMock = new Mock<IGroupsRepository>();
+        groupsServiceMock = new Mock<IGroupsService>();
+        groupsRepositoryMock = new Mock<IGroupsRepository>();
     }
 
     [TestMethod]
     public async Task GetAllGroups_Valid_Ok()
     {
         // Arrange
-        _groupsRepositoryMock.Setup(x => x.GetAllAsync())
+        groupsRepositoryMock.Setup(x => x.GetAllAsync())
             .ReturnsAsync(new List<Group>());
-        _groupsServiceMock.Setup(x => x.ToDtos(It.IsAny<List<Group>>()))
+        groupsServiceMock.Setup(x => x.ToDtos(It.IsAny<List<Group>>()))
             .Returns(new List<GroupDto>());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.GetAllGroups();
+        var response = await groupsController.GetAllGroups();
 
         // Assert
         Assert.IsInstanceOfType<OkObjectResult>(response.Result);
@@ -45,13 +45,13 @@ public sealed class GroupsControllerTests
     public async Task GetAllGroups_RepoExcept_Status500()
     {
         // Arrange
-        _groupsRepositoryMock.Setup(x => x.GetAllAsync())
+        groupsRepositoryMock.Setup(x => x.GetAllAsync())
             .ThrowsAsync(new Exception());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.GetAllGroups();
+        var response = await groupsController.GetAllGroups();
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -61,15 +61,15 @@ public sealed class GroupsControllerTests
     public async Task GetAllGroups_ServExcept_Status500()
     {
         // Arrange
-        _groupsRepositoryMock.Setup(x => x.GetAllAsync())
+        groupsRepositoryMock.Setup(x => x.GetAllAsync())
             .ReturnsAsync(new List<Group>());
-        _groupsServiceMock.Setup(x => x.ToDtos(It.IsAny<List<Group>>()))
+        groupsServiceMock.Setup(x => x.ToDtos(It.IsAny<List<Group>>()))
             .Throws(new Exception());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.GetAllGroups();
+        var response = await groupsController.GetAllGroups();
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -82,15 +82,15 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        _groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
+        groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(new Group());
-        _groupsServiceMock.Setup(x => x.ToDto(It.IsAny<Group>()))
+        groupsServiceMock.Setup(x => x.ToDto(It.IsAny<Group>()))
             .Returns(new GroupDto());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupById(id);
 
         // Assert
         Assert.IsInstanceOfType<OkObjectResult>(response.Result);
@@ -101,13 +101,13 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        _groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
+        groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
             .ThrowsAsync(new Exception());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupById(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -118,15 +118,15 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        _groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
+        groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(new Group());
-        _groupsServiceMock.Setup(x => x.ToDto(It.IsAny<Group>()))
+        groupsServiceMock.Setup(x => x.ToDto(It.IsAny<Group>()))
             .Throws(new Exception());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupById(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -137,13 +137,13 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        _groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
+        groupsRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync((Group)null);
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupById(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status404NotFound, (response.Result as StatusCodeResult).StatusCode);
@@ -157,12 +157,12 @@ public sealed class GroupsControllerTests
         // Arrange
         var id = new Guid();
         var updatedGroupDto = new GroupDto();
-        _groupsServiceMock.Setup(x => x.UpdateAsync(It.IsAny<Guid>(), It.IsAny<GroupDto>()));
+        groupsServiceMock.Setup(x => x.UpdateAsync(It.IsAny<Guid>(), It.IsAny<GroupDto>()));
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.UpdateGroupAsync(id, updatedGroupDto);
+        var response = await groupsController.UpdateGroupAsync(id, updatedGroupDto);
 
         // Assert
         Assert.IsInstanceOfType<OkResult>(response);
@@ -174,13 +174,13 @@ public sealed class GroupsControllerTests
         // Arrange
         var id = new Guid();
         var updatedGroupDto = new GroupDto();
-        _groupsServiceMock.Setup(x => x.UpdateAsync(It.IsAny<Guid>(), It.IsAny<GroupDto>()))
+        groupsServiceMock.Setup(x => x.UpdateAsync(It.IsAny<Guid>(), It.IsAny<GroupDto>()))
             .ThrowsAsync(new Exception());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.UpdateGroupAsync(id, updatedGroupDto);
+        var response = await groupsController.UpdateGroupAsync(id, updatedGroupDto);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response as ObjectResult).StatusCode);
@@ -193,12 +193,12 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var groupDto = new GroupDto();
-        _groupsServiceMock.Setup(x => x.AddAsync(It.IsAny<GroupDto>()));
+        groupsServiceMock.Setup(x => x.AddAsync(It.IsAny<GroupDto>()));
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.AddGroupAsync(groupDto);
+        var response = await groupsController.AddGroupAsync(groupDto);
 
         // Assert
         Assert.IsInstanceOfType<OkResult>(response);
@@ -209,13 +209,13 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var groupDto = new GroupDto();
-        _groupsServiceMock.Setup(x => x.AddAsync(It.IsAny<GroupDto>()))
+        groupsServiceMock.Setup(x => x.AddAsync(It.IsAny<GroupDto>()))
             .ThrowsAsync(new Exception());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.AddGroupAsync(groupDto);
+        var response = await groupsController.AddGroupAsync(groupDto);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response as ObjectResult).StatusCode);
@@ -228,12 +228,12 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        _groupsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()));
+        groupsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()));
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.DeleteGroup(id);
+        var response = await groupsController.DeleteGroup(id);
 
         // Assert
         Assert.IsInstanceOfType<OkResult>(response);
@@ -244,13 +244,13 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        _groupsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()))
+        groupsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()))
             .ThrowsAsync(new Exception());
 
-        _groupsController = new GroupsController(_groupsRepositoryMock.Object, _groupsServiceMock.Object);
+        groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await _groupsController.DeleteGroup(id);
+        var response = await groupsController.DeleteGroup(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response as ObjectResult).StatusCode);

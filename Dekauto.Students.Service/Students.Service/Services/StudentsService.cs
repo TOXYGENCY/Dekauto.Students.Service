@@ -128,6 +128,8 @@ namespace Dekauto.Students.Service.Students.Service.Services
         // TODO: доделать
         public async Task<IEnumerable<Student>> FromExportDtosAsync(IEnumerable<StudentExportDto> studentExportDtos)
         {
+            if (!studentExportDtos.Any()) throw new ArgumentException($"{nameof(studentExportDtos)} не может быть null или пустым");
+
             var students = new List<Student>();
 
             foreach (var studentExportDto in studentExportDtos)

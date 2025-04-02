@@ -4,17 +4,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
-    [Route("api/")]
+    [Route("api")]
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly IStudentsRepository _studentsRepository;
-        private readonly IStudentsService _studentsService;
+        private readonly IStudentsRepository studentsRepository;
+        private readonly IStudentsService studentsService;
 
         public StudentsController(IStudentsRepository studentsRepository, IStudentsService studentsService)
         {
-            _studentsRepository = studentsRepository;
-            _studentsService = studentsService;
+            this.studentsRepository = studentsRepository;
+            this.studentsService = studentsService;
         }
         // TODO: обезопасить все catch - убрать ex.message из вывода (в продакшен)
 
@@ -23,12 +23,12 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var students = await _studentsRepository.GetAllAsync();
+                var students = await studentsRepository.GetAllAsync();
                 return Ok(students);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -38,13 +38,13 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var students = await _studentsRepository.GetAllAsync();
-                var studentsDto = _studentsService.ToDtos(students);
+                var students = await studentsRepository.GetAllAsync();
+                var studentsDto = studentsService.ToDtos(students);
                 return Ok(studentsDto);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -53,14 +53,14 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var student = await _studentsRepository.GetByIdAsync(studentId);
+                var student = await studentsRepository.GetByIdAsync(studentId);
                 if (student == null) return StatusCode(StatusCodes.Status404NotFound);
-                var studentDto = _studentsService.ToDto(student);
+                var studentDto = studentsService.ToDto(student);
                 return Ok(studentDto);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -69,12 +69,12 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                await _studentsService.UpdateAsync(studentId, updatedStudentDto);
+                await studentsService.UpdateAsync(studentId, updatedStudentDto);
                 return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -83,12 +83,12 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                await _studentsService.AddAsync(studentDto);
+                await studentsService.AddAsync(studentDto);
                 return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
 
@@ -99,12 +99,12 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             try
             {
                 if (studentId == null) return StatusCode(StatusCodes.Status400BadRequest);
-                await _studentsRepository.DeleteAsync(studentId);
+                await studentsRepository.DeleteAsync(studentId);
                 return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
             }
         }
     }
