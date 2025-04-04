@@ -371,3 +371,4 @@ FodyWeavers.xsd
 /Dekauto.Students.Service/appsettings.Development_backup.json
 /Dekauto.Students.Service/appsettings.Development.host.docker.json
 /Dekauto.Students.Service/appsettings.klancer.json
+/db-create-dekauto-pre-release-v2.4.sql

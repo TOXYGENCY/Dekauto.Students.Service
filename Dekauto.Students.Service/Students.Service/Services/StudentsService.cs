@@ -3,6 +3,7 @@ using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System.Drawing;
 using System.Text.Json;
 
 namespace Dekauto.Students.Service.Students.Service.Services
@@ -125,7 +126,7 @@ namespace Dekauto.Students.Service.Students.Service.Services
                 throw new Exception($"Такой элемент уже существует в базе данных; ID = {studentDto.Id}.");
             }
         }
-        // TODO: доделать
+
         public async Task<IEnumerable<Student>> FromExportDtosAsync(IEnumerable<StudentExportDto> studentExportDtos)
         {
             if (!studentExportDtos.Any()) throw new ArgumentException($"{nameof(studentExportDtos)} не может быть null или пустым");
@@ -148,7 +149,7 @@ namespace Dekauto.Students.Service.Students.Service.Services
 
             // TODO: Убрать все добавления в соответствующие сервисы/репозитории
             var group = await context.Groups.FirstOrDefaultAsync(x => x.Name == studentExportDto.GroupName);
-            if (group != null)
+            if (group != null && !String.IsNullOrEmpty(group.Name))
             {
                 student.GroupId = group.Id;
                 student.Group = group;
