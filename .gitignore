@@ -371,3 +371,7 @@ FodyWeavers.xsd
 /Dekauto.Students.Service/appsettings.Development_backup.json
 /Dekauto.Students.Service/appsettings.Development.host.docker.json
 /Dekauto.Students.Service/appsettings.klancer.json
+/Dekauto.Students.Service/env
+/Dekauto.Students.Service/docker-compose.yml
+/Dekauto.Students.Service/Students.Service/appsettings.itmedia pc.json
+/Dekauto.Students.Service/.env
