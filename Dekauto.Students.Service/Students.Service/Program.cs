@@ -6,11 +6,16 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-//Взятие из свойств отладки
-builder.Configuration.AddEnvironmentVariables();
+// Применение конфигов.
+builder.Configuration
+    .AddEnvironmentVariables()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{Environment.UserName.ToLowerInvariant()}.json", optional: true, reloadOnChange: true)
+    .AddCommandLine(args);
 
 var connectionString = builder.Configuration.GetConnectionString("Main");
-
 
 // Add services to the container.
 
