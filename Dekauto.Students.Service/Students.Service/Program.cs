@@ -2,6 +2,7 @@ using Dekauto.groups.Service.groups.Service.Infrastructure;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Dekauto.Students.Service.Students.Service.Services;
+using Dekauto.Students.Service.Students.Service.Services.RabbitConsumers;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -32,6 +33,11 @@ builder.Services.AddTransient<IStudentsService, StudentsService>();
 builder.Services.AddTransient<IGroupsService, GroupsService>();
 builder.Services.AddTransient<IExportProvider, ExportProvider>();
 builder.Services.AddTransient<IImportProvider, ImportProvider>();
+//RabbitExport
+builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
+builder.Services.AddSingleton<IFileStorageService, FileStorageService>(); // <- Исправлено!
+builder.Services.AddHostedService<ExportStudentConsumer>();
+
 builder.Services.AddDbContext<DekautoContext>(options =>
     options.UseNpgsql(connectionString)
     .UseLazyLoadingProxies());

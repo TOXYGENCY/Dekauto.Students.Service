@@ -1,4 +1,6 @@
-﻿using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
+﻿using Dekauto.Students.Service.Students.Service.Domain.Entities.Rabbit;
+using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
+using Dekauto.Students.Service.Students.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
@@ -10,12 +12,17 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         private readonly IExportProvider exportProvider;
         private readonly IConfiguration configuration;
         private readonly IConfigurationSection exportConfig;
+        private readonly IRabbitMQService rabbitMQService;
+        private readonly IFileStorageService fileStorage;
         private readonly string defaultLatFileName;
 
-        public ExportController(IExportProvider exportProvider, IConfiguration configuration)
+        public ExportController(IExportProvider exportProvider, IConfiguration configuration, 
+            IRabbitMQService rabbitMQService, IFileStorageService fileStorage)
         {
             this.exportProvider = exportProvider;
             this.configuration = configuration;
+            this.fileStorage = fileStorage;
+            this.rabbitMQService = rabbitMQService;
 
             // Сразу находим секцию из конфига
             exportConfig = this.configuration.GetSection("Services").GetSection("Export");
@@ -67,6 +74,55 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
+            }
+        }
+
+        [HttpPost("student/rabbit/{studentId}")]
+        public async Task<IActionResult> ExportStudentCardByRabbit(Guid studentId)
+        {
+            try
+            {
+                var operationId = Guid.NewGuid();
+
+                // Отправляем задачу в RabbitMQ
+                await rabbitMQService.PublishExportTaskAsync(
+                    queueName: "export_student_queue",
+                    message: new ExportTaskMessage
+                    {
+                        operationId = operationId,
+                        studentId = studentId
+                    }
+                );
+
+                // Возвращаем клиенту ID операции
+                return Accepted(new { operationId });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { ex.Message });
+            }
+        }
+
+        [HttpGet("download/{operationId}")]
+        public async Task<IActionResult> DownloadExportedFile(Guid operationId)
+        {
+            try
+            {
+                // Получаем файл из хранилища
+                var (fileData, fileName) = await fileStorage.GetFileAsync(operationId);
+
+                // Устанавливаем заголовки
+                SetHeaderFileNames(defaultLatFileName, fileName);
+
+                return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound("Файл не найден или еще не готов");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { ex.Message });
             }
         }
     }
