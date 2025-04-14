@@ -113,7 +113,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
                 // Устанавливаем заголовки
                 SetHeaderFileNames(defaultLatFileName, fileName);
-
+                await fileStorage.DeleteAsync(operationId);
                 return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
             catch (FileNotFoundException)
