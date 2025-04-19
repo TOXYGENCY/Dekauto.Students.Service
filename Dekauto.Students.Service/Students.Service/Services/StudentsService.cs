@@ -51,6 +51,10 @@ namespace Dekauto.Students.Service.Students.Service.Services
             var studentExportDto = JsonSerializationConvert<Student, StudentExportDto>(student);
 
             // Дополняем объект нужными данными из БД
+            if (student.Group == null) 
+                throw new InvalidOperationException($"Отсутствует группа у студента {student.Surname} (id = {student.Id})");
+            if (student.Oo == null) 
+                throw new InvalidOperationException($"Отсутствует образовательная организация у студента {student.Surname} (id = {student.Id})");
             studentExportDto.GroupName = student.Group.Name;
             studentExportDto.OOName = student.Oo.Name;
             studentExportDto.OOAddress = student.Oo.OoAddress;
@@ -127,7 +131,7 @@ namespace Dekauto.Students.Service.Students.Service.Services
             }
         }
 
-        public async Task<IEnumerable<Student>> FromExportDtosAsync(IEnumerable<StudentExportDto> studentExportDtos)
+        public async Task<IEnumerable<Student>> ImportStudentsAsync(IEnumerable<StudentExportDto> studentExportDtos)
         {
             if (!studentExportDtos.Any()) throw new ArgumentException($"{nameof(studentExportDtos)} не может быть null или пустым");
 
@@ -135,47 +139,47 @@ namespace Dekauto.Students.Service.Students.Service.Services
 
             foreach (var studentExportDto in studentExportDtos)
             {
-                students.Add(await FromExportDtoAndIntoDbAsync(studentExportDto));
+                students.Add(await ImportStudentsFromExportDtosAsync(studentExportDto));
             }
 
             return students;
         }
 
-            // studentExportDto - без id, но с данными. student - с id, но без данных
-            // найти все внешние id и прицепить в id student
-        private async Task<Student> FromExportDtoAndIntoDbAsync(StudentExportDto studentExportDto)
+        // studentExportDto - без id, но с данными. student - с id, но без данных
+        // найти все внешние id и прицепить в id student
+        private async Task<Student> ImportStudentsFromExportDtosAsync(StudentExportDto studentExportDto)
         {
             var student = JsonSerializationConvert<StudentExportDto, Student>(studentExportDto);
+            // TODO: убрать обработку объектов в свои репозитории
 
-            // TODO: Убрать все добавления в соответствующие сервисы/репозитории
+            // Обработка группы
             var group = await context.Groups.FirstOrDefaultAsync(x => x.Name == studentExportDto.GroupName);
-            if (group != null && !String.IsNullOrEmpty(group.Name))
+            if (group == null)
             {
-                student.GroupId = group.Id;
-                student.Group = group;
+                group = new Group { Name = studentExportDto.GroupName };
+                context.Groups.Add(group);
+                // Не сохраняем здесь, но EF отслеживает изменения и сам генерирует Id объектам
             }
-            else
-            {
-                var newGroup = new Group();
-                newGroup.Name = studentExportDto.GroupName;
-                await context.Groups.AddAsync(newGroup);
-            }
+            student.GroupId = group.Id;
+            student.Group = group;
 
+            // Обработка Oo
             var oo = await context.Oos.FirstOrDefaultAsync(x => x.Name == studentExportDto.OOName);
-            if (oo != null)
+            if (oo == null)
             {
-                student.OoId = oo.Id;
-                student.Oo = oo;
+                oo = new Oo
+                {
+                    Name = studentExportDto.OOName,
+                    OoAddress = studentExportDto.OOAddress
+                };
+                context.Oos.Add(oo);
+                // Не сохраняем здесь, но EF отслеживает изменения
             }
-            else
-            {
-                var newOo = new Oo();
-                newOo.Name = studentExportDto.OOName;
-                newOo.OoAddress = studentExportDto.OOAddress;
-                await context.Oos.AddAsync(newOo);
-            }
+            student.OoId = oo.Id;
+            student.Oo = oo;
 
-            await context.SaveChangesAsync();
+            context.Students.Add(student);
+            await context.SaveChangesAsync(); // Сохраняем все изменения одним запросом
 
             return student;
         }

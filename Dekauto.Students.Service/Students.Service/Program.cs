@@ -2,7 +2,10 @@ using Dekauto.groups.Service.groups.Service.Infrastructure;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Dekauto.Students.Service.Students.Service.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +21,27 @@ builder.Configuration
 var connectionString = builder.Configuration.GetConnectionString("Main");
 
 // Add services to the container.
+// Добавляем JWT сервисы
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+// TODO: централизировать роли
+// Политики доступа к эндпоинтам
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("OnlyAdmin", policy => policy.RequireRole("Администратор"));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => 
