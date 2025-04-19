@@ -1,0 +1,21 @@
+{
+    "schema": "schema.graphql",
+    "documents": "**/*.graphql",
+    "extensions": {
+        "strawberryShake": {
+            "name": "ImportClient",
+            "namespace": "Dekauto.Students.Service.GraphQL",
+            "url": "http://dekauto.import:5503/graphql",
+            "records": {
+                "inputs": true,
+                "entities": true
+            },
+            "transportProfiles": [
+                {
+                    "default": "Http",
+                    "subscription": "WebSocket"
+                }
+            ]
+        }
+    }
+}

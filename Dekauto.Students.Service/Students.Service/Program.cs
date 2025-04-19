@@ -4,6 +4,16 @@ using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Dekauto.Students.Service.Students.Service.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using StrawberryShake;
+using StrawberryShake.Transport.Http;
+using System.Net.Http.Headers;
+using GraphQL;
+using GraphQL.Client.Http;
+using GraphQL.Client.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
+using GraphQL.Client.Serializer.Newtonsoft;
+using GraphQL.Client.Serializer.SystemTextJson;
 
 var builder = WebApplication.CreateBuilder(args);
 // Применение конфигов.
@@ -43,6 +53,21 @@ builder.Services.AddCors(options => options.AddPolicy("AngularLocalhost", policy
              .WithExposedHeaders("Content-Disposition")
              .AllowCredentials();
 }));
+
+// StrawberryShake GraphQL Client
+
+builder.Services.AddHttpClient();
+var serializerOptions = new JsonSerializerOptions 
+{ 
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
+};
+
+builder.Services.AddScoped<IGraphQLClient>(sp => 
+    new GraphQLHttpClient(
+        new GraphQLHttpClientOptions { EndPoint = new Uri(builder.Configuration["Services:Import:GraphQLEndpoint"]) },
+        new SystemTextJsonSerializer(serializerOptions), // Используйте этот сериализатор
+        sp.GetRequiredService<IHttpClientFactory>().CreateClient()));
+
 
 var app = builder.Build();
 
