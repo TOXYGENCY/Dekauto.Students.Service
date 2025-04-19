@@ -1,0 +1,91 @@
+type Mutation {
+  importStudents(
+    ld: String! 
+    contract: String!
+    journal: String!
+  ): [Student!]!
+}
+
+type Student {
+  name: String
+  surname: String
+  patronymic: String
+  gender: Boolean
+  birthdayDate: String           # DateOnly? → String
+  birthdayPlace: String
+  phoneNumber: String
+  email: String
+  gradeBook: String
+
+  # Паспортные данные
+  passportSerial: String
+  passportNumber: String
+  passportIssuancePlace: String
+  passportIssuanceDate: String   # DateOnly? → String
+  passportIssuanceCode: String
+  citizenship: String
+
+  # Адреса
+  addressRegistrationIndex: String
+  addressRegistrationOblKrayAvtobl: String
+  addressRegistrationDistrict: String
+  addressRegistrationType: String
+  addressRegistrationStreet: String
+  addressRegistrationCity: String
+  addressRegistrationHouse: String
+  addressRegistrationHousingType: String
+  addressRegistrationHousing: String
+  addressRegistrationApartment: String
+  addressResidentialIndex: String
+  addressResidentialOblKrayAvtobl: String
+  addressResidentialDistrict: String
+  addressResidentialType: String
+  addressResidentialStreet: String
+  addressResidentialCity: String
+  addressResidentialHouse: String
+  addressResidentialHousingType: String
+  addressResidentialHousing: String
+  addressResidentialApartment: String
+  livingInDormitory: Boolean
+
+  # Образование
+  enrollementOrderDate: String    # DateOnly? → String
+  enrollementOrderNum: String
+  groupName: String
+  educationReceived: String
+  educationReceivedSerial: String
+  educationReceivedNum: String
+  educationReceivedDate: String   # DateOnly? → String
+  ooName: String
+  ooAddress: String
+  educationReceivedEndYear: Int   # short? → Int
+  bonusScores: Int
+  militaryService: Boolean
+  maritalStatus: Boolean
+  education: String
+  educationForm: String
+  faculty: String
+  courseOfTraining: String
+  course: String
+  educationStartYear: Int
+  educationFinishYear: Int
+  educationTime: Int
+  educationBase: String
+  educationRelationForm: String
+  educationRelationNum: String
+  educationRelationDate: String   # DateOnly? → String
+
+  # Экзамены (GIA)
+  giaExam1Name: String
+  giaExam1Score: Int
+  giaExam1Note: String
+  giaExam2Name: String
+  giaExam2Score: Int
+  giaExam2Note: String
+  giaExam3Name: String
+  giaExam3Score: Int
+  giaExam3Note: String
+  giaExam4Name: String
+  giaExam4Score: Int
+  giaExam4Note: String
+}
