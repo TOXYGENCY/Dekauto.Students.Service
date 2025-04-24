@@ -61,16 +61,8 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             // Отправка запроса в сервис "Импорт" и получение готового массива
             var newStudents = await SendImportAsync(files);
 
-            // Конвертация
-            var processedNewStudents = await studentsService.FromExportDtosAsync(newStudents);
-
-            // Добавление в БД
-            foreach (var student in processedNewStudents)
-            {
-                await context.Students.AddAsync(student);
-            }
-
-            await context.SaveChangesAsync();
+            // Конвертация и добавление в БД
+            var processedNewStudents = await studentsService.ImportStudentsAsync(newStudents);
 
         }
     }

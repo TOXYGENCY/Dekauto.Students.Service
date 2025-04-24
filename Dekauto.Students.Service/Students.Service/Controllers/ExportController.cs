@@ -1,10 +1,13 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
     [Route("api/export")]
     [ApiController]
+    [Authorize(Policy = "OnlyAdmin")] // Требует аутентификации в роли "Администратор" для всех методов
+
     public class ExportController : ControllerBase
     {
         private readonly IExportProvider exportProvider;

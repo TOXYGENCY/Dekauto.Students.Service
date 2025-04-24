@@ -11,7 +11,7 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
 
         Task<StudentExportDto> ToExportDtoAsync(Guid studentId);
         Task<IEnumerable<StudentExportDto>> ToExportDtosAsync(IEnumerable<Student> students);
-        Task<IEnumerable<Student>> FromExportDtosAsync(IEnumerable<StudentExportDto> studentExportDtos);
+        Task<IEnumerable<Student>> ImportStudentsAsync(IEnumerable<StudentExportDto> studentExportDtos);
 
     }
 }
