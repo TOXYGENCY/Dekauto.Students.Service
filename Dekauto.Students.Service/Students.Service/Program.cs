@@ -35,7 +35,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            ClockSkew = TimeSpan.Zero // ¬ажно дл€ точной проверки времени
+
         };
     });
 
@@ -104,6 +106,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
+
 // явно указываем порты (дл€ Docker)
 app.Urls.Add("http://*:5501");
 
@@ -121,7 +124,12 @@ if (app.Environment.IsDevelopment())
 }
 
 
+// 1. јутентификаци€ (JWT, куки и т.д.)
+app.UseAuthentication();
+
+// 2. јвторизаци€ (проверка атрибутов [Authorize])
 app.UseAuthorization();
+
 
 app.MapControllers();
 
