@@ -2,6 +2,7 @@
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
@@ -13,26 +14,14 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     {
         private readonly IGroupsRepository groupsRepository;
         private readonly IGroupsService groupsService;
+        private readonly ILogger<ExportController> logger;
 
-        public GroupsController(IGroupsRepository groupsRepository, IGroupsService groupsService)
+        public GroupsController(IGroupsRepository groupsRepository, IGroupsService groupsService, 
+            ILogger<ExportController> logger)
         {
             this.groupsRepository = groupsRepository;
             this.groupsService = groupsService;
-        }
-        // TODO: обезопасить все catch - убрать ex.message из вывода (в продакшен)
-
-        [HttpGet("debug")]
-        public async Task<ActionResult<IEnumerable<GroupDto>>> GetAllGroupsDebug()
-        {
-            try
-            {
-                var groups = await groupsRepository.GetAllAsync();
-                return Ok(groups);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            this.logger = logger;
         }
 
         // INFO: может вернуть пустой список
@@ -47,7 +36,9 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                var mes = "Возникла непредвиденная ошибка сервера. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
             }
         }
 
@@ -57,13 +48,24 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             try
             {
                 var group = await groupsRepository.GetByIdAsync(groupId);
-                if (group == null) return StatusCode(StatusCodes.Status404NotFound);
+                if (group == null)
+                {
+                    throw new KeyNotFoundException($"Нет группы с id = {groupId}");
+                }
                 var groupDto = groupsService.ToDto(group);
                 return Ok(groupDto);
             }
+            catch (KeyNotFoundException ex)
+            {
+                var mes = "Указанная группа не найдена.";
+                logger.LogWarning(ex, mes);
+                return StatusCode(StatusCodes.Status404NotFound, mes);
+            }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                var mes = "Возникла непредвиденная ошибка сервера. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
             }
         }
 
@@ -72,12 +74,30 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
+                if (updatedGroupDto is null)
+                {
+                    throw new ArgumentNullException(nameof(updatedGroupDto));
+                }
                 await groupsService.UpdateAsync(groupId, updatedGroupDto);
                 return Ok();
             }
+            catch (KeyNotFoundException ex)
+            {
+                var mes = "Не найдена группа для обновления.";
+                logger.LogWarning(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
+            }
+            catch (ArgumentNullException ex)
+            {
+                var mes = "Не передана группа для обновления. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
+            }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                var mes = "Возникла непредвиденная ошибка сервера. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
             }
         }
 
@@ -86,12 +106,21 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
+                if (groupDto is null)
+                {
+                    throw new ArgumentNullException(nameof(groupDto));
+                }
+
                 await groupsService.AddAsync(groupDto);
+                logger.LogInformation($"Создана группа {groupDto.Name}");
+
                 return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                var mes = "Возникла непредвиденная ошибка сервера. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
             }
         }
 
@@ -101,13 +130,16 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                if (groupId == null) return StatusCode(StatusCodes.Status400BadRequest);
                 await groupsRepository.DeleteAsync(groupId);
+                logger.LogInformation($"Удалена группа с id = {groupId}");
+
                 return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                var mes = "Возникла непредвиденная ошибка сервера. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
             }
         }
     }

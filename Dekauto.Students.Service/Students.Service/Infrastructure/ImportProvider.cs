@@ -1,4 +1,5 @@
-﻿using Dekauto.Students.Service.Students.Service.Domain.Entities.Adapters;
+﻿using Dekauto.Students.Service.Students.Service.Controllers;
+using Dekauto.Students.Service.Students.Service.Domain.Entities.Adapters;
 using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 
@@ -7,19 +8,17 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
     public class ImportProvider : IImportProvider
     {
         private readonly IConfiguration configuration;
-        private readonly IConfigurationSection importConfig;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IStudentsService studentsService;
-        private readonly DekautoContext context;
+        private readonly ILogger<ExportController> logger;
 
-        public ImportProvider(IConfiguration configuration, IHttpClientFactory httpClientFactory, 
-            DekautoContext context, IStudentsService studentsService)
+        public ImportProvider(IConfiguration configuration, IHttpClientFactory httpClientFactory,
+            IStudentsService studentsService, ILogger<ExportController> logger)
         {
-            this.context = context;
             this.httpClientFactory = httpClientFactory;
             this.configuration = configuration;
             this.studentsService = studentsService;
-            this.importConfig = configuration.GetSection("Services").GetSection("Import");
+            this.logger = logger;
         }
 
         private async Task<IEnumerable<StudentExportDto>> SendImportAsync(ImportFilesAdapter files)
@@ -45,7 +44,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
                 content.Add(fileContent, "journal", files.journal.FileName);
             }
 
-            var response = await http.PostAsync(importConfig["import_students"], content);
+            var response = await http.PostAsync(configuration["Services:Import:import_students"], content);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<IEnumerable<StudentExportDto>>();
@@ -53,17 +52,22 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
         public async Task ImportFilesAsync(ImportFilesAdapter files)
         {
+            logger.LogInformation("Начата передача импорта файлов...");
             if (files == null) throw new ArgumentNullException(nameof(files));
             if (files.ld == null) throw new ArgumentNullException(nameof(files.ld));
             if (files.contract == null) throw new ArgumentNullException(nameof(files.contract));
             if (files.journal == null) throw new ArgumentNullException(nameof(files.journal));
 
             // Отправка запроса в сервис "Импорт" и получение готового массива
+            logger.LogInformation("Отправка запроса в сервис \"Импорт\" и получение готового массива...");
             var newStudents = await SendImportAsync(files);
+            logger.LogInformation("Получен массив с готовыми объектами.");
 
             // Конвертация и добавление в БД
+            logger.LogInformation("Получен ответ с готовыми объектами. Начата конвертация и добавление в БД.");
             var processedNewStudents = await studentsService.ImportStudentsAsync(newStudents);
 
+            logger.LogInformation("Все объекты были инпортированы в базу данных. Импорт завершен.");
         }
     }
 }
