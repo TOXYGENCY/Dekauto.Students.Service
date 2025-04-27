@@ -111,6 +111,7 @@ try
     builder.Services.AddTransient<IGroupsService, GroupsService>();
     builder.Services.AddTransient<IExportProvider, ExportProvider>();
     builder.Services.AddTransient<IImportProvider, ImportProvider>();
+    builder.Services.AddSingleton<IRequestMetricsService, RequestMetricsService>();
     builder.Services.AddDbContext<DekautoContext>(options =>
         options.UseNpgsql(connectionString)
         .UseLazyLoadingProxies());
@@ -154,6 +155,8 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+
+    app.UseMetricsMiddleware(); // Метрики
 
     Log.Information("Запускается Development-версия приложения. Активация Swagger...");
     app.Run();
