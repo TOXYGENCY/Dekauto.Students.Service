@@ -11,18 +11,16 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
     public class ExportController : ControllerBase
     {
         private readonly IExportProvider exportProvider;
-        private readonly IConfiguration configuration;
-        private readonly IConfigurationSection exportConfig;
+        private readonly ILogger<ExportController> logger;
         private readonly string defaultLatFileName;
 
-        public ExportController(IExportProvider exportProvider, IConfiguration configuration)
+        public ExportController(IExportProvider exportProvider, IConfiguration configuration,
+            ILogger<ExportController> logger)
         {
             this.exportProvider = exportProvider;
-            this.configuration = configuration;
+            this.logger = logger;
 
-            // Сразу находим секцию из конфига
-            exportConfig = this.configuration.GetSection("Services").GetSection("Export");
-            defaultLatFileName = exportConfig.GetValue<string>("defaultLatFileName") ?? "exported_student_card";
+            defaultLatFileName = configuration["Services:Export:defaultLatFileName"] ?? "exported_student_card";
         }
 
         // Проблема: передается только сам файл, а его название автомат. вписывается в заголовки, но без поддержки кириллицы.
@@ -44,14 +42,23 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var (fileData, fileName) = await exportProvider.ExportStudentCardAsync(studentId);
-                SetHeaderFileNames(defaultLatFileName, fileName);
+                var exportFileResult = await exportProvider.ExportStudentCardAsync(studentId);
+                SetHeaderFileNames(defaultLatFileName, exportFileResult.FileName);
+                logger.LogInformation($"Экспортирована карточка студента с id = {studentId}");
 
-                return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                return File(exportFileResult.FileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                var mes = "Указанный студент не найден.";
+                logger.LogWarning(ex, mes);
+                return StatusCode(StatusCodes.Status404NotFound, mes);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
+                var mes = "Возникла непредвиденная ошибка сервера. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
             }
         }
 
@@ -60,16 +67,23 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                if (groupId == null) return StatusCode(StatusCodes.Status400BadRequest);
+                var exportFileResult = await exportProvider.ExportGroupCardsAsync(groupId);
+                SetHeaderFileNames(defaultLatFileName, exportFileResult.FileName);
+                logger.LogInformation($"Экспортирован архив с карточками группы с id = {groupId}");
 
-                var (fileData, fileName) = await exportProvider.ExportGroupCardsAsync(groupId);
-                SetHeaderFileNames(defaultLatFileName, fileName);
-
-                return File(fileData, "application/zip");
+                return File(exportFileResult.FileData, "application/zip");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                var mes = "Указанная группа не найдена либо она пуста.";
+                logger.LogWarning(ex, mes);
+                return StatusCode(StatusCodes.Status404NotFound, mes);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { ex.Message, ex.StackTrace });
+                var mes = "Возникла непредвиденная ошибка сервера. Обратитесь к администратору или попробуйте позже.";
+                logger.LogError(ex, mes);
+                return StatusCode(StatusCodes.Status500InternalServerError, mes);
             }
         }
     }

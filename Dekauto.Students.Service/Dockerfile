@@ -11,9 +11,7 @@ WORKDIR /app
 # HTTP и HTTPS порты
 EXPOSE 5501 5502  
 
-
 ENV ASPNETCORE_ENVIRONMENT=Development
-
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build

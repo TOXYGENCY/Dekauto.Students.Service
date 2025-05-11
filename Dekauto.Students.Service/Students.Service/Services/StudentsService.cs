@@ -31,21 +31,10 @@ namespace Dekauto.Students.Service.Students.Service.Services
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
 
-        private async Task<Student> AssignEfStudentModelsAsync(Student student)
-        {
-            // Только один объект, потому что в нем содержатся нужные id
-            // INFO: тут допустимы присвоения null
-            student.User = await context.Users.FirstOrDefaultAsync(u => u.Id == student.UserId);
-            student.Group = await context.Groups.FirstOrDefaultAsync(gr => gr.Id == student.GroupId);
-            student.Oo = await context.Oos.FirstOrDefaultAsync(oo => oo.Id == student.OoId);
-
-            return student;
-        }
-
         public async Task<StudentExportDto> ToExportDtoAsync(Guid studentId)
         {
             var student = await studentsRepository.GetByIdAsync(studentId);
-            if (student == null) throw new ArgumentNullException(nameof(student));
+            if (student == null) throw new KeyNotFoundException(nameof(student));
             
             // Конвертируем общие поля
             var studentExportDto = JsonSerializationConvert<Student, StudentExportDto>(student);
@@ -127,7 +116,7 @@ namespace Dekauto.Students.Service.Students.Service.Services
             }
             else
             {
-                throw new Exception($"Такой элемент уже существует в базе данных; ID = {studentDto.Id}.");
+                throw new InvalidOperationException($"Такой элемент уже существует в базе данных; ID = {studentDto.Id}.");
             }
         }
 

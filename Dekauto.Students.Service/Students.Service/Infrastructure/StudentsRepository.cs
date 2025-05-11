@@ -19,7 +19,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             await сontext.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteByIdAsync(Guid id)
         {
             сontext.Remove(await GetByIdAsync(id));
             await сontext.SaveChangesAsync();
@@ -71,3 +71,4 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
         }
     }
 }
+

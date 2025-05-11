@@ -228,7 +228,7 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        groupsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()));
+        groupsRepositoryMock.Setup(x => x.DeleteByIdAsync(It.IsAny<Guid>()));
 
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
@@ -244,7 +244,7 @@ public sealed class GroupsControllerTests
     {
         // Arrange
         var id = new Guid();
-        groupsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()))
+        groupsRepositoryMock.Setup(x => x.DeleteByIdAsync(It.IsAny<Guid>()))
             .ThrowsAsync(new Exception());
 
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);

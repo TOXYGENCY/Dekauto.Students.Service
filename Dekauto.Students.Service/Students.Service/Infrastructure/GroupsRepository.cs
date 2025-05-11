@@ -1,4 +1,5 @@
-﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
+﻿using Dekauto.Students.Service;
+using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ namespace Dekauto.groups.Service.groups.Service.Infrastructure
             await context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid groupId)
+        public async Task DeleteByIdAsync(Guid groupId)
         {
             context.Groups.Remove(await GetByIdAsync(groupId));
             await context.SaveChangesAsync();
