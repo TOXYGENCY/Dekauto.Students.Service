@@ -88,10 +88,12 @@ builder.Services.AddHttpClient("ExportService", (provider, client) =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
     var exportConfig = config.GetSection("Services:Export");
+    var clientId = Environment.GetEnvironmentVariable("ClientId");
+    var clientSecret = Environment.GetEnvironmentVariable("Services__Export__ClientSecret");
 
     client.BaseAddress = new Uri(exportConfig["general"]!);
     var authHeader = Convert.ToBase64String(
-        Encoding.UTF8.GetBytes($"{exportConfig["client_id"]}:{exportConfig["client_secret"]}")
+        Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
     );
     Console.WriteLine($"Authorization Header: Basic {authHeader}"); // Логируем заголовок
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
@@ -101,13 +103,15 @@ builder.Services.AddHttpClient("ImportService", (provider, client) =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
     var importConfig = config.GetSection("Services:Import");
+    var clientId = Environment.GetEnvironmentVariable("ClientId");
+    var clientSecret = Environment.GetEnvironmentVariable("Services__Import__ClientSecret");
 
     client.BaseAddress = new Uri(importConfig["general"]!);
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
         "Basic",
         Convert.ToBase64String(
             Encoding.UTF8.GetBytes(
-                $"{importConfig["client_id"]}:{importConfig["client_secret"]}"
+                $"{clientId}:{clientSecret}"
             )
         )
     );
