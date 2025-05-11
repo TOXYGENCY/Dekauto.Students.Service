@@ -12,7 +12,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 
-// Íàñòðîéêà ëîããåðà Serilog
+// Настройка логгера Serilog
 Log.Logger = new LoggerConfiguration()
 .MinimumLevel.Information()
 .WriteTo.Console(
@@ -22,16 +22,16 @@ Log.Logger = new LoggerConfiguration()
     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}",
     rollingInterval: RollingInterval.Day,
     rollOnFileSizeLimit: true,
-    fileSizeLimitBytes: 10485760, // Îãðàíè÷åíèå íà ðàçìåð îäíîãî ëîãà 10 MB
-    retainedFileCountLimit: 31, // ìîæåò áûòü 31 ôàéë ñ ïîñëåäíèìè ëîãàìè, ïåðåä òåì, êàê îíè áóäóò óäàëÿòüñÿ 
-    encoding: Encoding.UTF8) 
+    fileSizeLimitBytes: 10485760, // Ограничение на размер одного лога 10 MB
+    retainedFileCountLimit: 31, // может быть 31 файл с последними логами, перед тем, как они будут удаляться 
+    encoding: Encoding.UTF8)
 .CreateLogger();
 
 try
 {
     Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
     var builder = WebApplication.CreateBuilder(args);
-    // Ïðèìåíåíèå êîíôèãîâ.
+    // Применение конфигов.
     builder.Configuration
         .AddEnvironmentVariables()
         .SetBasePath(Directory.GetCurrentDirectory())
@@ -51,7 +51,7 @@ try
     var connectionString = builder.Configuration.GetConnectionString("Main");
 
     // Add services to the container.
-    // Äîáàâëÿåì JWT ñåðâèñû
+    // Добавляем JWT сервисы
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -69,8 +69,8 @@ try
             };
         });
 
-    // TODO: öåíòðàëèçèðîâàòü ðîëè
-    // Ïîëèòèêè äîñòóïà ê ýíäïîèíòàì
+    // TODO: настроить связь между латинскими названиями 
+    // Политики доступа к эндпоинтам
     builder.Services.AddAuthorizationBuilder()
         .AddPolicy("OnlyAdmin", policy => policy.RequireRole("Admin"));
 
@@ -79,7 +79,7 @@ try
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    // Äîáàâëåíèå swagger ñ àâòîðèçàöèåé
+    // Добавление swagger с авторизацией
     builder.Services.AddSwaggerGen(c =>
     {
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -110,40 +110,39 @@ try
         }
         });
     });
-});
 
-builder.Services.AddHttpClient("ExportService", (provider, client) =>
-{
-    var config = provider.GetRequiredService<IConfiguration>();
-    var exportConfig = config.GetSection("Services:Export");
-    var clientId = Environment.GetEnvironmentVariable("ClientId");
-    var clientSecret = Environment.GetEnvironmentVariable("Services__Export__ClientSecret");
+    builder.Services.AddHttpClient("ExportService", (provider, client) =>
+    {
+        var config = provider.GetRequiredService<IConfiguration>();
+        var exportConfig = config.GetSection("Services:Export");
+        var clientId = Environment.GetEnvironmentVariable("ClientId");
+        var clientSecret = Environment.GetEnvironmentVariable("Services__Export__ClientSecret");
 
-    client.BaseAddress = new Uri(exportConfig["general"]!);
-    var authHeader = Convert.ToBase64String(
-        Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
-    );
-    Console.WriteLine($"Authorization Header: Basic {authHeader}"); // Ëîãèðóåì çàãîëîâîê
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
-});
+        client.BaseAddress = new Uri(exportConfig["general"]!);
+        var authHeader = Convert.ToBase64String(
+            Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
+        );
+        Console.WriteLine($"Authorization Header: Basic {authHeader}"); // Адрес Angular-приложения
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
+    });
 
-builder.Services.AddHttpClient("ImportService", (provider, client) =>
-{
-    var config = provider.GetRequiredService<IConfiguration>();
-    var importConfig = config.GetSection("Services:Import");
-    var clientId = Environment.GetEnvironmentVariable("ClientId");
-    var clientSecret = Environment.GetEnvironmentVariable("Services__Import__ClientSecret");
+    builder.Services.AddHttpClient("ImportService", (provider, client) =>
+    {
+        var config = provider.GetRequiredService<IConfiguration>();
+        var importConfig = config.GetSection("Services:Import");
+        var clientId = Environment.GetEnvironmentVariable("ClientId");
+        var clientSecret = Environment.GetEnvironmentVariable("Services__Import__ClientSecret");
 
-    client.BaseAddress = new Uri(importConfig["general"]!);
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-        "Basic",
-        Convert.ToBase64String(
-            Encoding.UTF8.GetBytes(
-                $"{clientId}:{clientSecret}"
+        client.BaseAddress = new Uri(importConfig["general"]!);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(
+                Encoding.UTF8.GetBytes(
+                    $"{clientId}:{clientSecret}"
+                )
             )
-        )
-    );
-});
+        );
+    });
     builder.Services.AddHttpClient();
     builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
     builder.Services.AddTransient<IGroupsRepository, GroupsRepository>();
@@ -157,7 +156,7 @@ builder.Services.AddHttpClient("ImportService", (provider, client) =>
         .UseLazyLoadingProxies());
     builder.Services.AddCors(options => options.AddPolicy("AngularLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") // Àäðåñ Angular-ïðèëîæåíèÿ
+        policy.WithOrigins("http://localhost:4200") // Адрес Angular-приложения
               .AllowAnyHeader()
                  .AllowAnyMethod()
                  .WithExposedHeaders("Content-Disposition")
@@ -171,9 +170,9 @@ builder.Services.AddHttpClient("ImportService", (provider, client) =>
     // Configure the HTTP request pipeline.
 
 
-    // ßâíî óêàçûâàåì ïîðòû (äëÿ Docker)
+    // Явно указываем порты (для Docker)
     app.Urls.Add("http://*:5501");
-   
+
     if (app.Environment.IsDevelopment())
     {
         app.UseCors("AngularLocalhost");
@@ -182,7 +181,7 @@ builder.Services.AddHttpClient("ImportService", (provider, client) =>
         app.UseSwaggerUI();
     }
 
-    // Èñïîëüçóåì https, åñëè ýòî óêàçàíî â êîíôèãå
+    // Используем https, если это указано в конфиге
     if (Boolean.Parse(app.Configuration["UseHttps"]))
     {
         app.Urls.Add("https://*:5502");
@@ -190,15 +189,15 @@ builder.Services.AddHttpClient("ImportService", (provider, client) =>
         Log.Information("Enabled HTTPS.");
     }
 
-    // Àóòåíòèôèêàöèÿ (JWT, êóêè è ò.ä.)
+    // Аутентификация (JWT, куки и т.д.)
     app.UseAuthentication();
 
-    // Àâòîðèçàöèÿ (ïðîâåðêà àòðèáóòîâ [Authorize])
+    // Авторизация (проверка атрибутов [Authorize])
     app.UseAuthorization();
 
     app.MapControllers();
 
-    app.UseMetricsMiddleware(); // Ìåòðèêè
+    app.UseMetricsMiddleware(); // Метрики
 
     Log.Information("Application startup...");
     app.Run();
