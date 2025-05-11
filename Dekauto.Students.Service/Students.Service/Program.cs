@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -82,6 +83,36 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Services.AddHttpClient("ExportService", (provider, client) =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var exportConfig = config.GetSection("Services:Export");
+
+    client.BaseAddress = new Uri(exportConfig["general"]!);
+    var authHeader = Convert.ToBase64String(
+        Encoding.UTF8.GetBytes($"{exportConfig["client_id"]}:{exportConfig["client_secret"]}")
+    );
+    Console.WriteLine($"Authorization Header: Basic {authHeader}"); // Логируем заголовок
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
+});
+
+builder.Services.AddHttpClient("ImportService", (provider, client) =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var importConfig = config.GetSection("Services:Import");
+
+    client.BaseAddress = new Uri(importConfig["general"]!);
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+        "Basic",
+        Convert.ToBase64String(
+            Encoding.UTF8.GetBytes(
+                $"{importConfig["client_id"]}:{importConfig["client_secret"]}"
+            )
+        )
+    );
+});
+
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
 builder.Services.AddTransient<IGroupsRepository, GroupsRepository>();

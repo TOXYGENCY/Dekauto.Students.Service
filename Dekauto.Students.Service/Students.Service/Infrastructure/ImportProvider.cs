@@ -24,7 +24,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
         private async Task<IEnumerable<StudentExportDto>> SendImportAsync(ImportFilesAdapter files)
         {
-            var http = httpClientFactory.CreateClient();
+            var http = httpClientFactory.CreateClient("ImportService");
             var content = new MultipartFormDataContent();
 
             if (files.ld != null)
