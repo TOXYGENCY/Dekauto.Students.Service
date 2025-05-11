@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Dekauto.Students.Service.Students.Service.Controllers
 {
-    [Route("api")]
+    [Route("api/students")]
     [Authorize(Policy = "OnlyAdmin")] // Требует аутентификации в роли "Администратор" для всех методов
     [ApiController]
     public class StudentsController : ControllerBase
@@ -136,7 +136,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                await studentsRepository.DeleteAsync(studentId);
+                await studentsRepository.DeleteByIdAsync(studentId);
                 return Ok();
             }
             catch (KeyNotFoundException ex)

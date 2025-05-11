@@ -42,11 +42,11 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var (fileData, fileName) = await exportProvider.ExportStudentCardAsync(studentId);
-                SetHeaderFileNames(defaultLatFileName, fileName);
+                var exportFileResult = await exportProvider.ExportStudentCardAsync(studentId);
+                SetHeaderFileNames(defaultLatFileName, exportFileResult.FileName);
                 logger.LogInformation($"Экспортирована карточка студента с id = {studentId}");
 
-                return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                return File(exportFileResult.FileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             }
             catch (KeyNotFoundException ex)
             {
@@ -67,15 +67,15 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                var (fileData, fileName) = await exportProvider.ExportGroupCardsAsync(groupId);
-                SetHeaderFileNames(defaultLatFileName, fileName);
+                var exportFileResult = await exportProvider.ExportGroupCardsAsync(groupId);
+                SetHeaderFileNames(defaultLatFileName, exportFileResult.FileName);
                 logger.LogInformation($"Экспортирован архив с карточками группы с id = {groupId}");
 
-                return File(fileData, "application/zip");
+                return File(exportFileResult.FileData, "application/zip");
             }
             catch (KeyNotFoundException ex)
             {
-                var mes = "Указанный группа не найдена либо она пуста.";
+                var mes = "Указанная группа не найдена либо она пуста.";
                 logger.LogWarning(ex, mes);
                 return StatusCode(StatusCodes.Status404NotFound, mes);
             }

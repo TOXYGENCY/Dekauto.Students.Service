@@ -1,4 +1,7 @@
-﻿namespace Dekauto.Students.Service;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Dekauto.Students.Service.Students.Service.Domain.Entities;
 
 public partial class User
 {
@@ -6,7 +9,7 @@ public partial class User
 
     public string Login { get; set; } = null!;
 
-    public string Password { get; set; } = null!;
+    public string PasswordHash { get; set; } = null!;
 
     public Guid RoleId { get; set; }
 

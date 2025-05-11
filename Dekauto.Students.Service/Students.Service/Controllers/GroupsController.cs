@@ -130,7 +130,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         {
             try
             {
-                await groupsRepository.DeleteAsync(groupId);
+                await groupsRepository.DeleteByIdAsync(groupId);
                 logger.LogInformation($"Удалена группа с id = {groupId}");
 
                 return Ok();

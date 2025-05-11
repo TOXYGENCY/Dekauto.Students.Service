@@ -1,6 +1,5 @@
-﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
-
-namespace Dekauto.Students.Service;
+﻿
+namespace Dekauto.Students.Service.Students.Service.Domain.Entities;
 
 public partial class Student
 {

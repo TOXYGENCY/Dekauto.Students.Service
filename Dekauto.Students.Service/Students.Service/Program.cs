@@ -14,15 +14,21 @@ using System.Text.Json.Serialization;
 // Настройка логгера Serilog
 Log.Logger = new LoggerConfiguration()
 .MinimumLevel.Information()
-.WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}")
-.WriteTo.File("logs/Dekauto-Students-.log", outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}", rollingInterval: RollingInterval.Day,
+.WriteTo.Console(
+    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}"
+    )
+.WriteTo.File("logs/Dekauto-Students-.log",
+    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}",
+    rollingInterval: RollingInterval.Day,
     rollOnFileSizeLimit: true,
     fileSizeLimitBytes: 10485760, // Ограничение на размер одного лога 10 MB
-    retainedFileCountLimit: 31) // может быть 31 файл с последними логами, перед тем, как они будут удаляться
+    retainedFileCountLimit: 31, // может быть 31 файл с последними логами, перед тем, как они будут удаляться 
+    encoding: Encoding.UTF8) 
 .CreateLogger();
 
 try
 {
+    Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
     var builder = WebApplication.CreateBuilder(args);
     // Применение конфигов.
     builder.Configuration
@@ -37,7 +43,7 @@ try
     var jwtKey = builder.Configuration["Jwt:Key"];
     if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)
     {
-        var mes = "Неверный секретный ключ для JWT токенов - необходимо не менее 32 символов.";
+        var mes = "Invalid secret key for JWT tokens - needs to be at least 32 characters long.";
         Log.Fatal(mes);
         throw new InvalidOperationException(mes);
     }
@@ -59,14 +65,13 @@ try
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
                 ClockSkew = TimeSpan.Zero // Важно для точной проверки времени
-
             };
         });
 
     // TODO: централизировать роли
     // Политики доступа к эндпоинтам
     builder.Services.AddAuthorizationBuilder()
-        .AddPolicy("OnlyAdmin", policy => policy.RequireRole("Администратор"));
+        .AddPolicy("OnlyAdmin", policy => policy.RequireRole("Admin"));
 
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
@@ -78,7 +83,7 @@ try
     {
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            Description = "Введите JWT токен (без слова 'Bearer')",
+            Description = "Input JWT token (without 'Bearer')",
             Name = "Authorization",
             In = ParameterLocation.Header,
             Type = SecuritySchemeType.Http,
@@ -118,12 +123,13 @@ try
     builder.Services.AddCors(options => options.AddPolicy("AngularLocalhost", policy =>
     {
         policy.WithOrigins("http://localhost:4200") // Адрес Angular-приложения
-                 .AllowAnyHeader()
+              .AllowAnyHeader()
                  .AllowAnyMethod()
                  .WithExposedHeaders("Content-Disposition")
                  .AllowCredentials();
     }));
 
+    Log.Information("Building the application...");
     var app = builder.Build();
 
 
@@ -132,10 +138,11 @@ try
 
     // Явно указываем порты (для Docker)
     app.Urls.Add("http://*:5501");
-
+   
     if (app.Environment.IsDevelopment())
     {
-        Log.Warning("Запускается Development-версия приложения. Активация Swagger...");
+        app.UseCors("AngularLocalhost");
+        Log.Warning("Development version of the application is started. Swagger activation...");
         app.UseSwagger();
         app.UseSwaggerUI();
     }
@@ -143,9 +150,9 @@ try
     // Используем https, если это указано в конфиге
     if (Boolean.Parse(app.Configuration["UseHttps"]))
     {
-        app.Urls.Add("https://*:5508");
+        app.Urls.Add("https://*:5502");
         app.UseHttpsRedirection();
-        Log.Information("Включен HTTPS.");
+        Log.Information("Enabled HTTPS.");
     }
 
     // Аутентификация (JWT, куки и т.д.)
@@ -158,12 +165,12 @@ try
 
     app.UseMetricsMiddleware(); // Метрики
 
-    Log.Information("Запускается Development-версия приложения. Активация Swagger...");
+    Log.Information("Application startup...");
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "В приложении возникла непредвиденная критическая ошибка.");
+    Log.Fatal(ex, "An unexpected Fatal error has occurred in the application.");
 }
 finally
 {

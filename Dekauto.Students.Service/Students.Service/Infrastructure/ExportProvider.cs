@@ -1,4 +1,5 @@
 ﻿using Dekauto.Students.Service.Students.Service.Controllers;
+using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using System.Configuration;
 
@@ -25,7 +26,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             this.logger = logger;
         }
 
-        private async Task<(byte[], string)> ExportFile(object data, string apiUrl)
+        private async Task<ExportFileResult> ExportFile(object data, string apiUrl)
         {
             HttpClient http = httpClientFactory.CreateClient();
             // Отправка запроса в сервис "Экспорт" и получение готового файла
@@ -46,10 +47,10 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
                 ?? Uri.EscapeDataString($"{defaultLatFileName}");
 
             logger.LogInformation("Экспорт файла завершен.");
-            return (fileData, fileName);
+            return new ExportFileResult(fileData, fileName);
         }
 
-        public async Task<(byte[], string)> ExportStudentCardAsync(Guid studentId)
+        public async Task<ExportFileResult> ExportStudentCardAsync(Guid studentId)
         {
             logger.LogInformation($"Подготовка данных к экспорту студента с id = {studentId}...");
  
@@ -64,7 +65,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
             return await ExportFile(studentExportDTO, apiUrl);
         }
 
-        public async Task<(byte[], string)> ExportGroupCardsAsync(Guid groupId)
+        public async Task<ExportFileResult> ExportGroupCardsAsync(Guid groupId)
         {
             logger.LogInformation($"Подготовка данных к экспорту группы с id = {groupId}...");
 

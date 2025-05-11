@@ -1,6 +1,7 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using System.Threading.Tasks;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure

@@ -20,7 +20,6 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
             this.requestMetricsService = requestMetricsService;
         }
         [Route("healthcheck")]
-        [Authorize(Policy = "OnlyAdmin")]
         [HttpGet]
         public async Task<IActionResult> HealthCheckAsync()
         {

@@ -228,7 +228,7 @@ public sealed class StudentsControllerTests
     {
         // Arrange
         var id = new Guid();
-        studentsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()));
+        studentsRepositoryMock.Setup(x => x.DeleteByIdAsync(It.IsAny<Guid>()));
 
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
@@ -244,7 +244,7 @@ public sealed class StudentsControllerTests
     {
         // Arrange
         var id = new Guid();
-        studentsRepositoryMock.Setup(x => x.DeleteAsync(It.IsAny<Guid>()))
+        studentsRepositoryMock.Setup(x => x.DeleteByIdAsync(It.IsAny<Guid>()))
             .ThrowsAsync(new Exception());
 
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);

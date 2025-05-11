@@ -1,4 +1,5 @@
 ﻿using Dekauto.Students.Service.Students.Service.Domain.Entities;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure;
@@ -12,7 +13,6 @@ public partial class DekautoContext : DbContext
     public DekautoContext(DbContextOptions<DekautoContext> options)
         : base(options)
     {
-
     }
 
     public virtual DbSet<Group> Groups { get; set; }
@@ -25,9 +25,9 @@ public partial class DekautoContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("uuid-ossp");
@@ -71,9 +71,16 @@ public partial class DekautoContext : DbContext
 
             entity.ToTable("roles");
 
+            entity.HasIndex(e => e.EngName, "roles_eng_name_key").IsUnique();
+
+            entity.HasIndex(e => e.Name, "roles_name_key").IsUnique();
+
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
+            entity.Property(e => e.EngName)
+                .HasMaxLength(50)
+                .HasColumnName("eng_name");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
@@ -299,15 +306,17 @@ public partial class DekautoContext : DbContext
 
             entity.ToTable("users");
 
+            entity.HasIndex(e => e.Login, "users_login_key").IsUnique();
+
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
             entity.Property(e => e.Login)
                 .HasMaxLength(100)
                 .HasColumnName("login");
-            entity.Property(e => e.Password)
+            entity.Property(e => e.PasswordHash)
                 .HasMaxLength(100)
-                .HasColumnName("password");
+                .HasColumnName("password_hash");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
