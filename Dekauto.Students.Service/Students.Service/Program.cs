@@ -6,12 +6,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Net.Http.Headers;
 using Serilog;
 using System.Text;
 using System.Text.Json.Serialization;
 
 
-// Настройка логгера Serilog
+// ГЌГ Г±ГІГ°Г®Г©ГЄГ  Г«Г®ГЈГЈГҐГ°Г  Serilog
 Log.Logger = new LoggerConfiguration()
 .MinimumLevel.Information()
 .WriteTo.Console(
@@ -21,8 +22,8 @@ Log.Logger = new LoggerConfiguration()
     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}",
     rollingInterval: RollingInterval.Day,
     rollOnFileSizeLimit: true,
-    fileSizeLimitBytes: 10485760, // Ограничение на размер одного лога 10 MB
-    retainedFileCountLimit: 31, // может быть 31 файл с последними логами, перед тем, как они будут удаляться 
+    fileSizeLimitBytes: 10485760, // ГЋГЈГ°Г Г­ГЁГ·ГҐГ­ГЁГҐ Г­Г  Г°Г Г§Г¬ГҐГ° Г®Г¤Г­Г®ГЈГ® Г«Г®ГЈГ  10 MB
+    retainedFileCountLimit: 31, // Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј 31 ГґГ Г©Г« Г± ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ¬ГЁ Г«Г®ГЈГ Г¬ГЁ, ГЇГҐГ°ГҐГ¤ ГІГҐГ¬, ГЄГ ГЄ Г®Г­ГЁ ГЎГіГ¤ГіГІ ГіГ¤Г Г«ГїГІГјГ±Гї 
     encoding: Encoding.UTF8) 
 .CreateLogger();
 
@@ -30,7 +31,7 @@ try
 {
     Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
     var builder = WebApplication.CreateBuilder(args);
-    // Применение конфигов.
+    // ГЏГ°ГЁГ¬ГҐГ­ГҐГ­ГЁГҐ ГЄГ®Г­ГґГЁГЈГ®Гў.
     builder.Configuration
         .AddEnvironmentVariables()
         .SetBasePath(Directory.GetCurrentDirectory())
@@ -50,7 +51,7 @@ try
     var connectionString = builder.Configuration.GetConnectionString("Main");
 
     // Add services to the container.
-    // Добавляем JWT сервисы
+    // Г„Г®ГЎГ ГўГ«ГїГҐГ¬ JWT Г±ГҐГ°ГўГЁГ±Г»
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -64,12 +65,12 @@ try
                 ValidAudience = builder.Configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-                ClockSkew = TimeSpan.Zero // Важно для точной проверки времени
+                ClockSkew = TimeSpan.Zero // Г‚Г Г¦Г­Г® Г¤Г«Гї ГІГ®Г·Г­Г®Г© ГЇГ°Г®ГўГҐГ°ГЄГЁ ГўГ°ГҐГ¬ГҐГ­ГЁ
             };
         });
 
-    // TODO: централизировать роли
-    // Политики доступа к эндпоинтам
+    // TODO: Г¶ГҐГ­ГІГ°Г Г«ГЁГ§ГЁГ°Г®ГўГ ГІГј Г°Г®Г«ГЁ
+    // ГЏГ®Г«ГЁГІГЁГЄГЁ Г¤Г®Г±ГІГіГЇГ  ГЄ ГЅГ­Г¤ГЇГ®ГЁГ­ГІГ Г¬
     builder.Services.AddAuthorizationBuilder()
         .AddPolicy("OnlyAdmin", policy => policy.RequireRole("Admin"));
 
@@ -78,7 +79,7 @@ try
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    // Добавление swagger с авторизацией
+    // Г„Г®ГЎГ ГўГ«ГҐГ­ГЁГҐ swagger Г± Г ГўГІГ®Г°ГЁГ§Г Г¶ГЁГҐГ©
     builder.Services.AddSwaggerGen(c =>
     {
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -109,6 +110,40 @@ try
         }
         });
     });
+});
+
+builder.Services.AddHttpClient("ExportService", (provider, client) =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var exportConfig = config.GetSection("Services:Export");
+    var clientId = Environment.GetEnvironmentVariable("ClientId");
+    var clientSecret = Environment.GetEnvironmentVariable("Services__Export__ClientSecret");
+
+    client.BaseAddress = new Uri(exportConfig["general"]!);
+    var authHeader = Convert.ToBase64String(
+        Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
+    );
+    Console.WriteLine($"Authorization Header: Basic {authHeader}"); // Г‹Г®ГЈГЁГ°ГіГҐГ¬ Г§Г ГЈГ®Г«Г®ГўГ®ГЄ
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
+});
+
+builder.Services.AddHttpClient("ImportService", (provider, client) =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var importConfig = config.GetSection("Services:Import");
+    var clientId = Environment.GetEnvironmentVariable("ClientId");
+    var clientSecret = Environment.GetEnvironmentVariable("Services__Import__ClientSecret");
+
+    client.BaseAddress = new Uri(importConfig["general"]!);
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+        "Basic",
+        Convert.ToBase64String(
+            Encoding.UTF8.GetBytes(
+                $"{clientId}:{clientSecret}"
+            )
+        )
+    );
+});
     builder.Services.AddHttpClient();
     builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
     builder.Services.AddTransient<IGroupsRepository, GroupsRepository>();
@@ -122,7 +157,7 @@ try
         .UseLazyLoadingProxies());
     builder.Services.AddCors(options => options.AddPolicy("AngularLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") // Адрес Angular-приложения
+        policy.WithOrigins("http://localhost:4200") // ГЂГ¤Г°ГҐГ± Angular-ГЇГ°ГЁГ«Г®Г¦ГҐГ­ГЁГї
               .AllowAnyHeader()
                  .AllowAnyMethod()
                  .WithExposedHeaders("Content-Disposition")
@@ -136,7 +171,7 @@ try
     // Configure the HTTP request pipeline.
 
 
-    // Явно указываем порты (для Docker)
+    // ГџГўГ­Г® ГіГЄГ Г§Г»ГўГ ГҐГ¬ ГЇГ®Г°ГІГ» (Г¤Г«Гї Docker)
     app.Urls.Add("http://*:5501");
    
     if (app.Environment.IsDevelopment())
@@ -147,7 +182,7 @@ try
         app.UseSwaggerUI();
     }
 
-    // Используем https, если это указано в конфиге
+    // Г€Г±ГЇГ®Г«ГјГ§ГіГҐГ¬ https, ГҐГ±Г«ГЁ ГЅГІГ® ГіГЄГ Г§Г Г­Г® Гў ГЄГ®Г­ГґГЁГЈГҐ
     if (Boolean.Parse(app.Configuration["UseHttps"]))
     {
         app.Urls.Add("https://*:5502");
@@ -155,15 +190,15 @@ try
         Log.Information("Enabled HTTPS.");
     }
 
-    // Аутентификация (JWT, куки и т.д.)
+    // ГЂГіГІГҐГ­ГІГЁГґГЁГЄГ Г¶ГЁГї (JWT, ГЄГіГЄГЁ ГЁ ГІ.Г¤.)
     app.UseAuthentication();
 
-    // Авторизация (проверка атрибутов [Authorize])
+    // ГЂГўГІГ®Г°ГЁГ§Г Г¶ГЁГї (ГЇГ°Г®ГўГҐГ°ГЄГ  Г ГІГ°ГЁГЎГіГІГ®Гў [Authorize])
     app.UseAuthorization();
 
     app.MapControllers();
 
-    app.UseMetricsMiddleware(); // Метрики
+    app.UseMetricsMiddleware(); // ГЊГҐГІГ°ГЁГЄГЁ
 
     Log.Information("Application startup...");
     app.Run();

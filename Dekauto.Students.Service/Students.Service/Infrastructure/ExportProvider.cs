@@ -1,3 +1,6 @@
+
+﻿using System.Net.Http.Headers;
+using System.Text;
 ﻿using Dekauto.Students.Service.Students.Service.Controllers;
 using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
@@ -28,7 +31,7 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
         private async Task<ExportFileResult> ExportFile(object data, string apiUrl)
         {
-            HttpClient http = httpClientFactory.CreateClient();
+            HttpClient http = httpClientFactory.CreateClient("ExportService");
             // Отправка запроса в сервис "Экспорт" и получение готового файла
             logger.LogInformation("Отправка запроса в сервис \"Экспорт\" и получение готового файла...");
             var response = await http.PostAsJsonAsync(apiUrl, data);
