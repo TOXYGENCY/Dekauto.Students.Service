@@ -110,7 +110,6 @@ try
         }
         });
     });
-});
 
 builder.Services.AddHttpClient("ExportService", (provider, client) =>
 {
