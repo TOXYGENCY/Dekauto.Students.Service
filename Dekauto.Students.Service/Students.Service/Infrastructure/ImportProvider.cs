@@ -2,6 +2,7 @@
 using Dekauto.Students.Service.Students.Service.Domain.Entities.Adapters;
 using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Dekauto.Students.Service.Students.Service.Infrastructure
 {
@@ -11,14 +12,17 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IStudentsService studentsService;
         private readonly ILogger<ExportController> logger;
+        private readonly IGroupsService groupsService;
 
         public ImportProvider(IConfiguration configuration, IHttpClientFactory httpClientFactory,
-            IStudentsService studentsService, ILogger<ExportController> logger)
+            IStudentsService studentsService, ILogger<ExportController> logger,
+            IGroupsService groupsService)
         {
             this.httpClientFactory = httpClientFactory;
             this.configuration = configuration;
             this.studentsService = studentsService;
             this.logger = logger;
+            this.groupsService = groupsService;
         }
 
         private async Task<IEnumerable<StudentExportDto>> SendImportAsync(ImportFilesAdapter files)
@@ -65,9 +69,26 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 
             // Конвертация и добавление в БД
             logger.LogInformation("Получен ответ с готовыми объектами. Начата конвертация и добавление в БД.");
-            var processedNewStudents = await studentsService.ImportStudentsAsync(newStudents);
+            var groupNames = GetAllUniqueGroupNames(newStudents);
+            var existingStudentsInGroups = await groupsService.GetAllStudentsForGroupsAsync(groupNames);
+            await studentsService.ImportStudentsAsync(newStudents, existingStudentsInGroups);
 
             logger.LogInformation("Все объекты были инпортированы в базу данных. Импорт завершен.");
+        }
+
+        private IEnumerable<string> GetAllUniqueGroupNames(IEnumerable<StudentExportDto> students)
+        {
+            if (students is null)
+            {
+                throw new ArgumentNullException(nameof(students));
+            }
+
+            var groupNames = students
+                .Where(s => !s.GroupName.IsNullOrEmpty())
+                .Select(s => s.GroupName)
+                .Distinct();
+
+            return groupNames;
         }
     }
 }

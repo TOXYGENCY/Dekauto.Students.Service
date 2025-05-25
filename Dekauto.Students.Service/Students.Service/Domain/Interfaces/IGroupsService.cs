@@ -7,6 +7,7 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
     {
         Task AddAsync(GroupDto groupDto);
         Task UpdateAsync(Guid groupId, GroupDto updatedGroupDto);
+        Task<IEnumerable<Student>> GetAllStudentsForGroupsAsync(IEnumerable<string> groupNames);
 
     }
 }

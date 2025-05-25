@@ -93,5 +93,19 @@ namespace Dekauto.Students.Service.Students.Service.Services
                 throw new Exception($"Такой элемент уже существует в базе данных; ID = {groupDto.Id}.");
             }
         }
+
+
+        public async Task<IEnumerable<Student>> GetAllStudentsForGroupsAsync(IEnumerable<string> groupNames)
+        {
+            var students = new List<Student>();
+
+            foreach (var gName in groupNames)
+            {
+                var group = await groupsRepository.GetGroupByNameAsync(gName);
+                if (group == null) continue;
+                students.AddRange(group.Students);
+            }
+            return students;
+        }
     }
 }
