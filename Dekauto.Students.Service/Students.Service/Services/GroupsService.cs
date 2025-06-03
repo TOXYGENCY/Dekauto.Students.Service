@@ -10,11 +10,14 @@ namespace Dekauto.Students.Service.Students.Service.Services
     public class GroupsService : IGroupsService, IDtoConverter<Group, GroupDto>
     {
         private readonly IGroupsRepository groupsRepository;
+        private readonly IStudentsRepository studentsRepository;
         private readonly DekautoContext сontext;
-        public GroupsService(DekautoContext сontext, IGroupsRepository groupsRepository) 
+        public GroupsService(DekautoContext сontext, IGroupsRepository groupsRepository, 
+            IStudentsRepository studentsRepository)
         {
             this.сontext = сontext;
             this.groupsRepository = groupsRepository;
+            this.studentsRepository = studentsRepository;
         }
 
         private async Task<Group> AssignEfStudentModelsAsync(Group group)
@@ -106,6 +109,13 @@ namespace Dekauto.Students.Service.Students.Service.Services
                 students.AddRange(group.Students);
             }
             return students;
+        }
+
+        public async Task DeleteByIdAsync(Guid groupId)
+        {
+            var group = await groupsRepository.GetByIdAsync(groupId);
+            await studentsRepository.DeleteRangeAsync(group.Students);
+            await groupsRepository.DeleteByIdAsync(groupId);
         }
     }
 }
