@@ -6,21 +6,37 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NuGet.Protocol;
+using Prometheus;
 using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
+using Serilog.Sinks.Loki;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
-using Prometheus;
 
 
-// Настройка логгера Serilog
+var tempOutputTemplate = "[STUDENTS STARTUP LOGGER] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+// Временные логгер Serilog для этапа до создания билдера
 Log.Logger = new LoggerConfiguration()
-.MinimumLevel.Information()
-.WriteTo.Console(
-    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}"
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Fatal) // Только критические ошибки из Microsoft-сервисов
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate: tempOutputTemplate,
+        restrictedToMinimumLevel: LogEventLevel.Information
     )
+.WriteTo.Loki(new LokiSinkConfigurations()
+{
+    Url = new Uri("http://loki:3100"),
+    Labels =
+    [
+        new LokiLabel("app_startup", "dekauto_students_startup") ,
+        new LokiLabel("app_full","dekauto_full")
+    ]
+})
 .WriteTo.File("logs/Dekauto-Students-.log",
-    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}",
+    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
     rollingInterval: RollingInterval.Day,
     rollOnFileSizeLimit: true,
     fileSizeLimitBytes: 10485760, // Ограничение на размер одного лога 10 MB
@@ -30,7 +46,6 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
     var builder = WebApplication.CreateBuilder(args);
     // Применение конфигов.
     builder.Configuration
@@ -40,6 +55,23 @@ try
         .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
         .AddJsonFile($"appsettings.{Environment.UserName.ToLowerInvariant()}.json", optional: true, reloadOnChange: true)
         .AddCommandLine(args);
+
+    // Полноценная настройка Serilog логгера (из конфига)
+    builder.Host.UseSerilog((builderContext, serilogConfig) =>
+    {
+        serilogConfig
+            .ReadFrom.Configuration(builderContext.Configuration)
+            // Ручная настройка Loki
+            .WriteTo.Loki(new LokiSinkConfigurations()
+            {
+                Url = new Uri("http://loki:3100"),
+                Labels =
+                [
+                    new LokiLabel("app", "dekauto_students") ,
+                    new LokiLabel("app_full","dekauto_full")
+                ]
+            });
+    });
 
     builder.Configuration["Jwt:Key"] = Environment.GetEnvironmentVariable("Jwt__Key");
     var jwtKey = builder.Configuration["Jwt:Key"];
@@ -242,7 +274,29 @@ try
 }
 catch (Exception ex)
 {
+    // В случае краха приложения при запуске пытаемся отправить логи:
+    // 1. Запись в файл и консоль контейнера
     Log.Fatal(ex, "An unexpected Fatal error has occurred in the application.");
+    try
+    {
+        // 2. Попытка отправить критическую ошибку в Loki
+        using var tempLogger = new LoggerConfiguration()
+            .WriteTo.Loki(new LokiSinkConfigurations()
+            {
+                Url = new Uri("http://loki:3100"),
+                Labels =
+                [
+                    new LokiLabel("app_startup", "dekauto_students_startup") ,
+                    new LokiLabel("app_full","dekauto_full")
+                ]
+            })
+            .CreateLogger();
+        tempLogger.Fatal(ex, "[STUDENTS TEMPORARY FATAL LOGGER] Application startup failed");
+    }
+    catch (Exception lokiEx)
+    {
+        Log.Warning(lokiEx, "Failed to send log to Loki");
+    }
 }
 finally
 {
