@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NuGet.Protocol;
 using Serilog;
+using Serilog.Formatting.Compact;
+using Serilog.Sinks.Grafana.Loki;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -16,10 +19,18 @@ using System.Text.Json.Serialization;
 Log.Logger = new LoggerConfiguration()
 .MinimumLevel.Information()
 .WriteTo.Console(
-    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}"
+    new CompactJsonFormatter()
+    //outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"
     )
+.WriteTo.GrafanaLoki(
+        "http://loki:3100",
+        labels: new List<LokiLabel>
+        {
+            new LokiLabel { Key = "app", Value = "dekauto-students" },
+            new LokiLabel { Key = "app", Value = "dekauto-full" }
+        })
 .WriteTo.File("logs/Dekauto-Students-.log",
-    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}",
+    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
     rollingInterval: RollingInterval.Day,
     rollOnFileSizeLimit: true,
     fileSizeLimitBytes: 10485760, // Ограничение на размер одного лога 10 MB
