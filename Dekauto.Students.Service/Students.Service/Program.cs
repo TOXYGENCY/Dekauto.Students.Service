@@ -13,6 +13,7 @@ using Serilog.Sinks.Loki;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
+using Prometheus;
 
 
 var tempOutputTemplate = "[STUDENTS STARTUP LOGGER] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
