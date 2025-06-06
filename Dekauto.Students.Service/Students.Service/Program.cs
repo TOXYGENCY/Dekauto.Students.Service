@@ -10,6 +10,7 @@ using Serilog;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
+using Prometheus;
 
 
 // Настройка логгера Serilog
@@ -233,6 +234,7 @@ try
 
     app.MapControllers();
 
+    app.MapMetrics();
     app.UseMetricsMiddleware(); // Метрики
 
     Log.Information("Application startup...");
