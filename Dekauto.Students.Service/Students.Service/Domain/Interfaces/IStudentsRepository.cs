@@ -12,6 +12,7 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
         Task<Oo> GetOoByIdAsync(Guid ooId);
         Task<string> GetGroupNameAsync(Guid groupId);
         Task<string> GetGroupNameAsync(Student student);
+        Task DeleteRangeAsync(IEnumerable<Student> range);
 
     }
 }

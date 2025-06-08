@@ -10,11 +10,14 @@ namespace Dekauto.Students.Service.Students.Service.Services
     public class GroupsService : IGroupsService, IDtoConverter<Group, GroupDto>
     {
         private readonly IGroupsRepository groupsRepository;
+        private readonly IStudentsRepository studentsRepository;
         private readonly DekautoContext сontext;
-        public GroupsService(DekautoContext сontext, IGroupsRepository groupsRepository) 
+        public GroupsService(DekautoContext сontext, IGroupsRepository groupsRepository, 
+            IStudentsRepository studentsRepository)
         {
             this.сontext = сontext;
             this.groupsRepository = groupsRepository;
+            this.studentsRepository = studentsRepository;
         }
 
         private async Task<Group> AssignEfStudentModelsAsync(Group group)
@@ -92,6 +95,27 @@ namespace Dekauto.Students.Service.Students.Service.Services
             {
                 throw new Exception($"Такой элемент уже существует в базе данных; ID = {groupDto.Id}.");
             }
+        }
+
+
+        public async Task<IEnumerable<Student>> GetAllStudentsForGroupsAsync(IEnumerable<string> groupNames)
+        {
+            var students = new List<Student>();
+
+            foreach (var gName in groupNames)
+            {
+                var group = await groupsRepository.GetGroupByNameAsync(gName);
+                if (group == null) continue;
+                students.AddRange(group.Students);
+            }
+            return students;
+        }
+
+        public async Task DeleteByIdAsync(Guid groupId)
+        {
+            var group = await groupsRepository.GetByIdAsync(groupId);
+            await studentsRepository.DeleteRangeAsync(group.Students);
+            await groupsRepository.DeleteByIdAsync(groupId);
         }
     }
 }

@@ -6,68 +6,74 @@ namespace Dekauto.Students.Service.Students.Service.Infrastructure
 {
     public class StudentsRepository : IStudentsRepository
     {
-        private DekautoContext сontext;
+        private DekautoContext context;
 
         public StudentsRepository(DekautoContext context)
         {
-            сontext = context;
+            this.context = context;
         }
 
         public async Task AddAsync(Student student)
         {
-            сontext.Students.Add(student);
-            await сontext.SaveChangesAsync();
+            context.Students.Add(student);
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteByIdAsync(Guid id)
         {
-            сontext.Remove(await GetByIdAsync(id));
-            await сontext.SaveChangesAsync();
+            context.Remove(await GetByIdAsync(id));
+            await context.SaveChangesAsync();
+        }
+
+        public async Task DeleteRangeAsync(IEnumerable<Student> range)
+        {
+            context.RemoveRange(range);
+            await context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Student>> GetAllAsync()
         {
-            return await сontext.Students.ToListAsync();
+            return await context.Students.ToListAsync();
         }
 
         public async Task<Student> GetByIdAsync(Guid id)
         {
-            return await сontext.Students.FirstOrDefaultAsync(student => student.Id == id);
+            return await context.Students.FirstOrDefaultAsync(student => student.Id == id);
         }
 
         public async Task<string> GetGroupNameAsync(Guid groupId)
         {
-            var group = await сontext.Groups.FirstOrDefaultAsync(group => group.Id == groupId);
+            var group = await context.Groups.FirstOrDefaultAsync(group => group.Id == groupId);
             return group.Name;
         }
         public async Task<string> GetGroupNameAsync(Student student)
         {
-            var group = await сontext.Groups.FirstOrDefaultAsync(group => group.Id == student.GroupId);
+            var group = await context.Groups.FirstOrDefaultAsync(group => group.Id == student.GroupId);
             return group.Name;
         }
 
         public async Task<Oo> GetOoByIdAsync(Guid ooId)
         {
-            return await сontext.Oos.FirstOrDefaultAsync(oo => oo.Id == ooId);
+            return await context.Oos.FirstOrDefaultAsync(oo => oo.Id == ooId);
         }
 
         public async Task<IEnumerable<Student>> GetStudentsByGroupAsync(Student student)
         {
-            return await сontext.Students.Where(s => s.GroupId == student.GroupId).ToListAsync();
+            return await context.Students.Where(s => s.GroupId == student.GroupId).ToListAsync();
         }
 
         public async Task<IEnumerable<Student>> GetStudentsByGroupAsync(Guid groupId)
         {
-            return await сontext.Students.Where(s => s.GroupId == groupId).ToListAsync();
+            return await context.Students.Where(s => s.GroupId == groupId).ToListAsync();
         }
 
         public async Task UpdateAsync(Student updatedStudent)
         {
-            var currentStudent = await сontext.Students.FirstOrDefaultAsync(s => s.Id == updatedStudent.Id);
+            var currentStudent = await context.Students.FirstOrDefaultAsync(s => s.Id == updatedStudent.Id);
             if (currentStudent == null) throw new KeyNotFoundException($"Student {updatedStudent.Id} not found");
 
-            сontext.Entry(currentStudent).CurrentValues.SetValues(updatedStudent);
-            await сontext.SaveChangesAsync();
+            context.Entry(currentStudent).CurrentValues.SetValues(updatedStudent);
+            await context.SaveChangesAsync();
         }
     }
 }
