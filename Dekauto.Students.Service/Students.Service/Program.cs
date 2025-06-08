@@ -13,6 +13,7 @@ using Serilog.Sinks.Grafana.Loki;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
+using Prometheus;
 
 
 // Настройка логгера Serilog
@@ -74,7 +75,6 @@ try
     }
 
     // Add services to the container.
-
     if (Boolean.Parse(builder.Configuration["UseEndpointAuth"] ?? "true"))
     {
         // Добавляем JWT сервисы
@@ -91,58 +91,58 @@ try
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-                    ClockSkew = TimeSpan.Zero // Âàæíî äëÿ òî÷íîé ïðîâåðêè âðåìåíè
+                    ClockSkew = TimeSpan.Zero // Нужно для корректного отсчета
                 };
             });
 
-        // TODO: настроить связь между латинскими названиями 
-        // Политики доступа к эндпоинтам
-        builder.Services.AddAuthorizationBuilder()
-            .AddPolicy("OnlyAdmin", policy => policy.RequireRole("Admin"));
+            // TODO: настроить связь между латинскими названиями 
+    // Политики доступа к эндпоинтам
+    builder.Services.AddAuthorizationBuilder()
+        .AddPolicy("OnlyAdmin", policy => policy.RequireRole("Admin"));
 
-        // Межсервисная авторизация 
-        builder.Services.AddHttpClient("ExportService", (provider, client) =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            var exportConfig = config.GetSection("Services:Export");
-            var clientId = Environment.GetEnvironmentVariable("ClientId");
-            var clientSecret = Environment.GetEnvironmentVariable("Services__Export__ClientSecret");
-
-            client.BaseAddress = new Uri(exportConfig["general"]!);
-            var authHeader = Convert.ToBase64String(
-                Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
-            );
-            Console.WriteLine($"Authorization Header: Basic {authHeader}"); // Ëîãèðóåì çàãîëîâîê
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
-        });
-        builder.Services.AddHttpClient("ImportService", (provider, client) =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            var importConfig = config.GetSection("Services:Import");
-            var clientId = Environment.GetEnvironmentVariable("ClientId");
-            var clientSecret = Environment.GetEnvironmentVariable("Services__Import__ClientSecret");
-
-            client.BaseAddress = new Uri(importConfig["general"]!);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-                "Basic",
-                Convert.ToBase64String(
-                    Encoding.UTF8.GetBytes(
-                        $"{clientId}:{clientSecret}"
-                    )
-                )
-            );
-        });
-    }
-    else
+    // Межсервисная авторизация 
+    builder.Services.AddHttpClient("ExportService", (provider, client) =>
     {
-        // Заглушка политик доступа, если авторизация выключена
-        builder.Services.AddAuthorizationBuilder()
-            .AddPolicy("OnlyAdmin", policy => policy.RequireAssertion(_ => true));
-    }
+        var config = provider.GetRequiredService<IConfiguration>();
+        var exportConfig = config.GetSection("Services:Export");
+        var clientId = Environment.GetEnvironmentVariable("ClientId");
+        var clientSecret = Environment.GetEnvironmentVariable("Services__Export__ClientSecret");
 
-    builder.Services.AddControllers()
-        .AddJsonOptions(options =>
-            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+        client.BaseAddress = new Uri(exportConfig["general"]!);
+        var authHeader = Convert.ToBase64String(
+            Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
+        );
+        Console.WriteLine($"Authorization Header: Basic {authHeader}"); // Ëîãèðóåì çàãîëîâîê
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
+    });
+    builder.Services.AddHttpClient("ImportService", (provider, client) =>
+    {
+        var config = provider.GetRequiredService<IConfiguration>();
+        var importConfig = config.GetSection("Services:Import");
+        var clientId = Environment.GetEnvironmentVariable("ClientId");
+        var clientSecret = Environment.GetEnvironmentVariable("Services__Import__ClientSecret");
+
+        client.BaseAddress = new Uri(importConfig["general"]!);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(
+                Encoding.UTF8.GetBytes(
+                    $"{clientId}:{clientSecret}"
+                )
+            )
+        );
+    });
+}
+else
+{
+    // Заглушка политик доступа, если авторизация выключена
+    builder.Services.AddAuthorizationBuilder()
+        .AddPolicy("OnlyAdmin", policy => policy.RequireAssertion(_ => true));
+}
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
@@ -177,7 +177,6 @@ try
         }
         });
     });
-
     builder.Services.AddHttpClient();
     builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
     builder.Services.AddTransient<IGroupsRepository, GroupsRepository>();
@@ -243,7 +242,6 @@ try
     }
 
     app.MapControllers();
-
     app.UseMetricsMiddleware(); // Метрики
 
     Log.Information("Application startup...");
