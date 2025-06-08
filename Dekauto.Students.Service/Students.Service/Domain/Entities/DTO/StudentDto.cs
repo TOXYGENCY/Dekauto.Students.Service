@@ -7,7 +7,7 @@
     {
         public Guid Id { get; set; }
 
-        public Guid? UserId { get; set; }
+        //public Guid? UserId { get; set; }
 
         public string? Name { get; set; }
 
@@ -17,7 +17,9 @@
 
         public bool? Gender { get; set; }
 
-        public DateOnly? BirthdayDate { get; set; }
+        public Guid? GroupId { get; set; }
+
+        /* public DateOnly? BirthdayDate { get; set; }
 
         public string? BirthdayPlace { get; set; }
 
@@ -78,8 +80,6 @@
         public string? AddressResidentialApartment { get; set; }
 
         public bool? LivingInDormitory { get; set; }
-
-        public Guid? GroupId { get; set; }
 
         public string? GiaExam1Name { get; set; }
 
@@ -153,6 +153,6 @@
 
         public string? AddressResidentialHousingType { get; set; }
 
-        public string? Education { get; set; }
+        public string? Education { get; set; } */
     }
 }

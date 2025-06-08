@@ -3,6 +3,7 @@ using Dekauto.Students.Service.Students.Service.Domain.Entities;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Dekauto.groups.Service.groups.Service.Infrastructure
 {
@@ -33,6 +34,11 @@ namespace Dekauto.groups.Service.groups.Service.Infrastructure
         public async Task<Group> GetByIdAsync(Guid groupId)
         {
             return await context.Groups.FirstOrDefaultAsync(g => g.Id == groupId);
+        }
+
+        public async Task<Group> GetGroupByNameAsync(string groupName)
+        {
+            return await context.Groups.FirstOrDefaultAsync(g => g.Name == groupName);
         }
 
         public async Task UpdateAsync(Group updatedGroup)

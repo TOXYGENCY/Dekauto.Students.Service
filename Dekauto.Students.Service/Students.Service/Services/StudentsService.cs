@@ -3,8 +3,10 @@ using Dekauto.Students.Service.Students.Service.Domain.Entities.DTO;
 using Dekauto.Students.Service.Students.Service.Domain.Interfaces;
 using Dekauto.Students.Service.Students.Service.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using System.Drawing;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using System.Collections.Generic;
 using System.Text.Json;
+using Group = Dekauto.Students.Service.Students.Service.Domain.Entities.Group;
 
 namespace Dekauto.Students.Service.Students.Service.Services
 {
@@ -26,7 +28,7 @@ namespace Dekauto.Students.Service.Students.Service.Services
         /// <typeparam name="DEST"></typeparam>
         /// <param name="src"></param>
         /// <returns></returns>
-        public DEST JsonSerializationConvert<SRC, DEST>(SRC src)
+        private DEST JsonSerializationConvert<SRC, DEST>(SRC src)
         {
             return JsonSerializer.Deserialize<DEST>(JsonSerializer.Serialize(src));
         }
@@ -120,23 +122,59 @@ namespace Dekauto.Students.Service.Students.Service.Services
             }
         }
 
-        public async Task<IEnumerable<Student>> ImportStudentsAsync(IEnumerable<StudentExportDto> studentExportDtos)
+        public async Task<IEnumerable<Student>> ImportStudentsAsync(IEnumerable<StudentExportDto> studentExportDtos, IEnumerable<Student> existingStudentsInGroups)
         {
             if (!studentExportDtos.Any()) throw new ArgumentException($"{nameof(studentExportDtos)} не может быть null или пустым");
+            if (existingStudentsInGroups is null) throw new ArgumentNullException($"{nameof(existingStudentsInGroups)} не может быть null");
 
             var students = new List<Student>();
 
             foreach (var studentExportDto in studentExportDtos)
             {
-                students.Add(await ImportStudentsFromExportDtosAsync(studentExportDto));
+                // добавление студента в базу и в локальный массив
+                students.Add(await ImportStudentsFromExportDtosAsync(studentExportDto, existingStudentsInGroups));
             }
 
+            // (пока нигде не используется)
+            // возвращение всех добавленных студентов
             return students;
         }
 
+        // Идемпотентное добавление: нет - добавим, есть - обновим
+        private async Task<Student> AddOrUpdateStudentAsync(Student student, IEnumerable<Student> existingStudentsInGroups)
+        {
+            if (student is null)
+            {
+                throw new ArgumentNullException(nameof(student));
+            }
+
+            // Проверка есть ли такой студент уже в предсталенных группах
+            var existingStudent = existingStudentsInGroups.FirstOrDefault(
+                s => s.Name == student.Name
+                && student.Surname == s.Surname
+                && student.Patronymic == s.Patronymic
+                && student.BirthdayDate == s.BirthdayDate);
+
+
+            // Защита от дубликатов
+            if (existingStudent == null)
+            {
+                await context.Students.AddAsync(student);
+            }
+            else
+            {
+                // Если считается, что existingStudent тот же, то ставим id (единственный primary key) для student
+                // и обновляем existingStudent за счет student с правильным id 
+                student.Id = existingStudent.Id;
+                await studentsRepository.UpdateAsync(student);
+            }
+            return student;
+        }
+
+
         // studentExportDto - без id, но с данными. student - с id, но без данных
         // найти все внешние id и прицепить в id student
-        private async Task<Student> ImportStudentsFromExportDtosAsync(StudentExportDto studentExportDto)
+        private async Task<Student> ImportStudentsFromExportDtosAsync(StudentExportDto studentExportDto, IEnumerable<Student> existingStudentsInGroups)
         {
             var student = JsonSerializationConvert<StudentExportDto, Student>(studentExportDto);
             // TODO: убрать обработку объектов в свои репозитории
@@ -167,10 +205,11 @@ namespace Dekauto.Students.Service.Students.Service.Services
             student.OoId = oo.Id;
             student.Oo = oo;
 
-            context.Students.Add(student);
+            await AddOrUpdateStudentAsync(student, existingStudentsInGroups);
             await context.SaveChangesAsync(); // Сохраняем все изменения одним запросом
 
             return student;
         }
+    
     }
 }

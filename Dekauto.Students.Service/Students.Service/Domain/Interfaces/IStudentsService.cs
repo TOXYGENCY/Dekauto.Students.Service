@@ -7,7 +7,7 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
     {
         // Метод конвертации через сериализацию в/из JSON
         // Здесь необходим для реализации конвертации из IDtoConverter
-        DEST JsonSerializationConvert<SRC, DEST>(SRC src);
+        //DEST JsonSerializationConvert<SRC, DEST>(SRC src);
 
         // Специальная логика добавления студента
         Task AddAsync(StudentDto studentDto);
@@ -18,6 +18,6 @@ namespace Dekauto.Students.Service.Students.Service.Domain.Interfaces
         Task<StudentExportDto> ToExportDtoAsync(Guid studentId);
         Task<IEnumerable<StudentExportDto>> ToExportDtosAsync(IEnumerable<Student> students);
         // Импортирование объектов, полученных из сервиса импорта
-        Task<IEnumerable<Student>> ImportStudentsAsync(IEnumerable<StudentExportDto> studentExportDtos);
+        Task<IEnumerable<Student>> ImportStudentsAsync(IEnumerable<StudentExportDto> studentExportDtos, IEnumerable<Student> existingStudentsInGroups);
     }
 }
