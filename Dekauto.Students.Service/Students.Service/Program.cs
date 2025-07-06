@@ -14,34 +14,28 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
 using Prometheus;
+using Serilog.Events;
 
 
-// Настройка логгера Serilog
+var tempOutputTemplate = "[STUDENTS STARTUP LOGGER] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+// Временные логгер Serilog для этапа до создания билдера
 Log.Logger = new LoggerConfiguration()
-.MinimumLevel.Information()
-.WriteTo.Console(
-    new CompactJsonFormatter()
-    //outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Fatal) // Только критические ошибки из Microsoft-сервисов
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate: tempOutputTemplate,
+        restrictedToMinimumLevel: LogEventLevel.Information
     )
-.WriteTo.GrafanaLoki(
-        "http://loki:3100",
-        labels: new List<LokiLabel>
-        {
-            new LokiLabel { Key = "app", Value = "dekauto-students" },
-            new LokiLabel { Key = "app", Value = "dekauto-full" }
-        })
-.WriteTo.File("logs/Dekauto-Students-.log",
-    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
-    rollingInterval: RollingInterval.Day,
-    rollOnFileSizeLimit: true,
-    fileSizeLimitBytes: 10485760, // Ограничение на размер одного лога 10 MB
-    retainedFileCountLimit: 31, // может быть 31 файл с последними логами, перед тем, как они будут удаляться  
-    encoding: Encoding.UTF8)
-.CreateLogger();
+    .WriteTo.File(
+        "logs/Students-startup-log.txt",
+        outputTemplate: tempOutputTemplate,
+        rollingInterval: RollingInterval.Day,
+        restrictedToMinimumLevel: LogEventLevel.Warning
+    )
+    .CreateBootstrapLogger(); // временный логгер
 
 try
 {
-    Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
     var builder = WebApplication.CreateBuilder(args);
     // Применение конфигов.
     builder.Configuration
@@ -51,6 +45,23 @@ try
         .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
         .AddJsonFile($"appsettings.{Environment.UserName.ToLowerInvariant()}.json", optional: true, reloadOnChange: true)
         .AddCommandLine(args);
+
+    // Полноценная настройка Serilog логгера (из конфига)
+    builder.Host.UseSerilog((builderContext, serilogConfig) =>
+    {
+        serilogConfig
+            .ReadFrom.Configuration(builderContext.Configuration)
+            // Ручная настройка Loki
+            .WriteTo.GrafanaLoki(
+                uri: "http://loki:3100",
+                labels: new List<LokiLabel>
+                {
+                        new LokiLabel { Key = "app", Value = "dekauto_students" },
+                        new LokiLabel { Key = "app_full", Value = "dekauto_full" }
+                },
+                textFormatter: new LokiJsonTextFormatter()
+            );
+    });
 
     builder.Configuration["Jwt:Key"] = Environment.GetEnvironmentVariable("Jwt__Key");
     var jwtKey = builder.Configuration["Jwt:Key"];
@@ -249,7 +260,28 @@ builder.Services.AddControllers()
 }
 catch (Exception ex)
 {
+    // В случае краха приложения при запуске пытаемся отправить логи:
+    // 1. Запись в файл и консоль контейнера
     Log.Fatal(ex, "An unexpected Fatal error has occurred in the application.");
+    try
+    {
+        // 2. Попытка отправить критическую ошибку в Loki
+        using var tempLogger = new LoggerConfiguration()
+            .WriteTo.GrafanaLoki(
+                "http://loki:3100",
+                labels: new List<LokiLabel>
+                {
+                    new LokiLabel { Key = "app_startup", Value = "dekauto_stundents_startup" },
+                    new LokiLabel { Key = "app_full", Value = "dekauto_full" }
+                },
+                textFormatter: new LokiJsonTextFormatter())
+            .CreateLogger();
+        tempLogger.Fatal(ex, "[STUDENTS TEMPORARY FATAL LOGGER] Application startup failed");
+    }
+    catch (Exception lokiEx)
+    {
+        Log.Warning(lokiEx, "Failed to send log to Loki");
+    }
 }
 finally
 {
