@@ -35,7 +35,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.GetAllStudents();
+        var response = await studentsController.GetAllStudentsAsync();
 
         // Assert
         Assert.IsInstanceOfType<OkObjectResult>(response.Result);
@@ -51,7 +51,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.GetAllStudents();
+        var response = await studentsController.GetAllStudentsAsync();
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -69,7 +69,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.GetAllStudents();
+        var response = await studentsController.GetAllStudentsAsync();
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -90,7 +90,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.GetStudentById(id);
+        var response = await studentsController.GetStudentByIdAsync(id);
 
         // Assert
         Assert.IsInstanceOfType<OkObjectResult>(response.Result);
@@ -107,7 +107,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.GetStudentById(id);
+        var response = await studentsController.GetStudentByIdAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -126,7 +126,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.GetStudentById(id);
+        var response = await studentsController.GetStudentByIdAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -143,7 +143,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.GetStudentById(id);
+        var response = await studentsController.GetStudentByIdAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status404NotFound, (response.Result as StatusCodeResult).StatusCode);
@@ -221,7 +221,7 @@ public sealed class StudentsControllerTests
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response as ObjectResult).StatusCode);
     }
 
-    // DeleteStudent
+    // DeleteStudentAsync
 
     [TestMethod]
     public async Task DeleteStudent_Valid_Ok()
@@ -233,7 +233,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.DeleteStudent(id);
+        var response = await studentsController.DeleteStudentAsync(id);
 
         // Assert
         Assert.IsInstanceOfType<OkResult>(response);
@@ -250,7 +250,7 @@ public sealed class StudentsControllerTests
         studentsController = new StudentsController(studentsRepositoryMock.Object, studentsServiceMock.Object);
 
         // Act
-        var response = await studentsController.DeleteStudent(id);
+        var response = await studentsController.DeleteStudentAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response as ObjectResult).StatusCode);

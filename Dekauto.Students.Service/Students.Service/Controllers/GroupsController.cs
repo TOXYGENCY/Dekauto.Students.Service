@@ -26,7 +26,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
         // INFO: может вернуть пустой список
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GroupDto>>> GetAllGroups()
+        public async Task<ActionResult<IEnumerable<GroupDto>>> GetAllGroupsAsync()
         {
             try
             {
@@ -43,7 +43,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
         [HttpGet("{groupId}")]
-        public async Task<ActionResult<GroupDto>> GetGroupById(Guid groupId)
+        public async Task<ActionResult<GroupDto>> GetGroupByIdAsync(Guid groupId)
         {
             try
             {
@@ -126,7 +126,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
 
         [HttpDelete("{groupId}")]
-        public async Task<IActionResult> DeleteGroup(Guid groupId)
+        public async Task<IActionResult> DeleteGroupAsync(Guid groupId)
         {
             try
             {

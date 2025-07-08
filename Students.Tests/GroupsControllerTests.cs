@@ -35,7 +35,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.GetAllGroups();
+        var response = await groupsController.GetAllGroupsAsync();
 
         // Assert
         Assert.IsInstanceOfType<OkObjectResult>(response.Result);
@@ -51,7 +51,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.GetAllGroups();
+        var response = await groupsController.GetAllGroupsAsync();
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -69,7 +69,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.GetAllGroups();
+        var response = await groupsController.GetAllGroupsAsync();
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -90,7 +90,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupByIdAsync(id);
 
         // Assert
         Assert.IsInstanceOfType<OkObjectResult>(response.Result);
@@ -107,7 +107,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupByIdAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -126,7 +126,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupByIdAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response.Result as ObjectResult).StatusCode);
@@ -143,7 +143,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.GetGroupById(id);
+        var response = await groupsController.GetGroupByIdAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status404NotFound, (response.Result as StatusCodeResult).StatusCode);
@@ -221,7 +221,7 @@ public sealed class GroupsControllerTests
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response as ObjectResult).StatusCode);
     }
 
-    // DeleteGroup
+    // DeleteGroupAsync
 
     [TestMethod]
     public async Task DeleteGroup_Valid_Ok()
@@ -233,7 +233,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.DeleteGroup(id);
+        var response = await groupsController.DeleteGroupAsync(id);
 
         // Assert
         Assert.IsInstanceOfType<OkResult>(response);
@@ -250,7 +250,7 @@ public sealed class GroupsControllerTests
         groupsController = new GroupsController(groupsRepositoryMock.Object, groupsServiceMock.Object);
 
         // Act
-        var response = await groupsController.DeleteGroup(id);
+        var response = await groupsController.DeleteGroupAsync(id);
 
         // Assert
         Assert.AreEqual(StatusCodes.Status500InternalServerError, (response as ObjectResult).StatusCode);
