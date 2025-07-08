@@ -24,7 +24,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
         // INFO: может вернуть пустой список
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudents()
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudentsAsync()
         {
             try
             {
@@ -41,7 +41,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
         [HttpGet("{studentId}")]
-        public async Task<ActionResult<StudentDto>> GetStudentById(Guid studentId)
+        public async Task<ActionResult<StudentDto>> GetStudentByIdAsync(Guid studentId)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
 
         [HttpDelete("{studentId}")]
-        public async Task<IActionResult> DeleteStudent(Guid studentId)
+        public async Task<IActionResult> DeleteStudentAsync(Guid studentId)
         {
             try
             {

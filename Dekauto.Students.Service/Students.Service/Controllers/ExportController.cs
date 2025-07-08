@@ -38,7 +38,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
 
 
         [HttpPost("student/{studentId}")]
-        public async Task<IActionResult> ExportStudentCard(Guid studentId)
+        public async Task<IActionResult> ExportStudentCardAsync(Guid studentId)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         }
 
         [HttpPost("group/{groupId}")]
-        public async Task<IActionResult> ExportGroupCards(Guid groupId)
+        public async Task<IActionResult> ExportGroupCardsAsync(Guid groupId)
         {
             try
             {

@@ -37,7 +37,7 @@ namespace Dekauto.Students.Service.Students.Service.Controllers
         [Route("requests")]
         [Authorize(Policy = "OnlyAdmin")]
         [HttpGet]
-        public async Task<IActionResult> RequestsPerPeriod()
+        public async Task<IActionResult> RequestsPerPeriodAsync()
         {
             try
             {
