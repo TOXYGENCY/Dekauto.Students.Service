@@ -377,3 +377,4 @@ FodyWeavers.xsd
 /Dekauto.Students.Service/.env
 /db-create-dekauto-pre-release-v2.4.sql
 /db-create-dekauto-pre-release-v2.4.3.sql
+/Dekauto.Students.Service/appsettings.itmedia pc.json
