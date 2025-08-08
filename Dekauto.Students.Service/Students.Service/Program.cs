@@ -67,7 +67,7 @@ try
                 Url = new Uri("http://loki:3100"),
                 Labels =
                 [
-                    new LokiLabel("app", "dekauto_students") ,
+                    new LokiLabel("app_startup", "dekauto_students") ,
                     new LokiLabel("app_full","dekauto_full")
                 ]
             });
@@ -291,7 +291,7 @@ catch (Exception ex)
                 ]
             })
             .CreateLogger();
-        tempLogger.Fatal(ex, "[STUDENTS TEMPORARY FATAL LOGGER] Application startup failed");
+        tempLogger.Fatal(ex, "[STUDENTS TEMPORARY LOGGER FATAL] Application startup failed");
     }
     catch (Exception lokiEx)
     {
