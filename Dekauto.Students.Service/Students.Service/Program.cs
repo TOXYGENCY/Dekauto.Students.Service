@@ -31,8 +31,8 @@ Log.Logger = new LoggerConfiguration()
     Url = new Uri("http://loki:3100"),
     Labels =
     [
-        new LokiLabel("app_startup", "dekauto_students_startup") ,
-        new LokiLabel("app_full","dekauto_full")
+        new LokiLabel("service_name", "dekauto_students"),
+        new LokiLabel("app","dekauto_full")
     ]
 })
 .WriteTo.File("logs/Dekauto-Students-.log",
@@ -67,8 +67,10 @@ try
                 Url = new Uri("http://loki:3100"),
                 Labels =
                 [
-                    new LokiLabel("app_startup", "dekauto_students") ,
-                    new LokiLabel("app_full","dekauto_full")
+                    new LokiLabel("service_name", "dekauto_students"),
+                    new LokiLabel("app","dekauto_full"),
+                    new LokiLabel("env",
+                    builderContext.HostingEnvironment.IsDevelopment() ? "dev" : "prod")
                 ]
             });
     });
@@ -286,8 +288,8 @@ catch (Exception ex)
                 Url = new Uri("http://loki:3100"),
                 Labels =
                 [
-                    new LokiLabel("app_startup", "dekauto_students_startup") ,
-                    new LokiLabel("app_full","dekauto_full")
+                    new LokiLabel("service_name", "dekauto_students"),
+                    new LokiLabel("app","dekauto_full")
                 ]
             })
             .CreateLogger();
